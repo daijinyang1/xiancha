@@ -3,6 +3,7 @@
 > 从 2026-11-07 起，「先查」项目的所有文件都在这里。工作区 `deepseek-harness/default-workspace` 里不再放项目文件。
 >
 > **线上地址：https://xiancha.pages.dev**（Cloudflare Pages 免费套餐，2026-11-08 上线）
+> **代码仓库：https://github.com/daijinyang1/xiancha**（公开，GitHub 账号 daijinyang1）
 
 ## 目录结构
 
@@ -69,6 +70,19 @@ python 用 `C:/Users/21971/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/py
 2. `node tools\gen_rule_pages.mjs` 重新生成词条页。
 3. `cd 02_站点 && node check.js` 自检。
 4. `node tools\e2e.mjs` 真机跑一遍。
+
+## 代码仓库（GitHub）
+
+```bat
+git status                       :: 看改了什么
+git add -A && git commit -m "说明" :: 存一次快照
+git push                         :: 推到 https://github.com/daijinyang1/xiancha
+```
+
+- 仓库：**https://github.com/daijinyang1/xiancha**（public，默认分支 main）
+- `.gitignore` 排掉 `.stage/`、`.wrangler/` 与系统垃圾；**明文凭据任何情况下都不许进仓库**。
+- GitHub 与 Cloudflare Pages **是两条独立的线**：push 到 GitHub 不会自动部署，部署仍然走 `node tools\deploy.mjs`。GitHub 只是代码存档与备份。
+- 命令行工具 `gh` 装在 `C:\Users\21971\.xiancha-deploy\gh\bin\gh.exe`（2.103.3），登录态在系统凭据管理器（keyring），账号 daijinyang1。
 
 ## 上线（已经上线，日常一条命令）
 

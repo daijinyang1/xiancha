@@ -23,6 +23,7 @@
 | `02_站点/404.html` `robots.txt` `sitemap.xml` `_headers` | 上线配套四件（sitemap 由脚本生成） |
 | `tools/deploy.mjs` | 一条命令部署到 Cloudflare Pages（线上 https://xiancha.pages.dev） |
 | `tools/live.mjs` | 部署后线上验收，真浏览器跑五页并存截图 |
+| GitHub | 仓库 https://github.com/daijinyang1/xiancha（public，main），git 快照用，与部署解耦 |
 | `03_素材/` | 竞品调研、素材清单、访谈模板、软著清单 |
 | `tools/` | 生成与验收脚本 |
 
@@ -46,6 +47,7 @@ node tools\live.mjs                         :: 部署后线上验收（真浏览
 4. 数据不造假：页面上每个数字要么能对得上真源，要么标注「示例数据」。
 5. 对外链接一律用干净地址（`/scan` 不是 `/scan.html`）：Pages 会把 `.html` 308 跳走，sitemap 里也必须是干净地址。
 6. 文案不改口径不一致的数字：63 条规则 / 12 条案例 / 8 类坑型 / 6 个证书，全文必须一致。
+7. 仓库是 public 的：明文密钥 / token / 密码一律不许提交，凭据只写「在哪个配置项读」。push 到 GitHub 不等于部署，部署仍走 `node tools/deploy.mjs`。
 
 ## 5. 自检清单（交付前必过）
 - [ ] `cd 02_站点 && node check.js` → 无错误（83 文件约 536 KB，含上线配套 [4b] 节）
