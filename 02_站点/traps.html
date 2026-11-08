@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>避坑案例库 · 先查</title>
+<meta name="description" content="12 个脱敏改写的大学生实习踩坑案例，按押金、培训贷、无薪试岗、违约金、社保、加班、合同文本、离职 8 类筛选，支持搜索与收藏。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html" class="active">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="kicker">案例库</span>
+      <h1 style="font-size:26px;">避坑案例库</h1>
+      <p>下面这些案例都来自公开报道与高校就业指导材料，已经隐去公司名与人名，只保留套路本身。看的时候重点看两栏：「当时有哪些信号」和「后来怎么处理」。</p>
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>
+          <input type="search" id="q" placeholder="搜索标题、场景、信号关键词，比如：押金、社保、加班费" autocomplete="off">
+        </div>
+        <button type="button" class="chip" id="fav-only">只看收藏</button>
+        <span class="counter" id="count-line" style="font-size:13px;color:#788491;">已收录 12 条</span>
+      </div>
+      <div class="filters" id="filters">
+        <button type="button" class="chip on" data-type="">全部</button>
+        <button type="button" class="chip" data-type="押金类">押金类</button>
+        <button type="button" class="chip" data-type="培训贷">培训贷</button>
+        <button type="button" class="chip" data-type="无薪试岗">无薪试岗</button>
+        <button type="button" class="chip" data-type="违约金">违约金</button>
+        <button type="button" class="chip" data-type="社保">社保</button>
+        <button type="button" class="chip" data-type="加班">加班</button>
+        <button type="button" class="chip" data-type="合同文本">合同文本</button>
+        <button type="button" class="chip" data-type="离职">离职</button>
+      </div>
+      <div class="hint">数据来源：data/traps.json。点卡片展开详情，星标按钮把这条收进本机收藏。</div>
+    </div>
+
+    <div class="trap-grid" id="trap-list" style="margin-top:16px;">
+      <div class="empty" style="grid-column:1/-1;">正在读取案例数据……</div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">收藏与数据</h2></div>
+      <p class="hint" style="margin-top:0;">收藏、扫描记录、AI 设置都只存在你这台电脑的浏览器里。换电脑、换浏览器、清理浏览器数据都会丢，重要内容建议导出备份。</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn-sm" id="btn-export">导出本地数据（.json）</button>
+        <button type="button" class="btn btn-sm" id="btn-import">导入备份</button>
+        <input type="file" id="input-import" accept=".json,application/json" style="display:none;">
+        <button type="button" class="btn btn-sm btn-danger" id="btn-clear-all">清空本地数据</button>
+      </div>
+      <div class="hint" id="import-hint" style="margin-top:8px;">导入会覆盖同名键，建议先导出一次当前数据。</div>
+    </div>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/app.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function () {
+  'use strict';
+  var App = window.QZQApp;
+  var DATA = [];
+  var state = { q: '', type: '', favOnly: false };
+
+  function starSvg(on) {
+    return '<svg viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9L12 3.5z"></path></svg>';
+  }
+
+  function match(item) {
+    if (state.type && item.type !== state.type) return false;
+    if (state.favOnly && !App.isFav(item.id)) return false;
+    if (!state.q) return true;
+    var q = state.q.toLowerCase();
+    var hay = [item.title, item.scene, item.type, item.consequence, item.advice].join(' ').toLowerCase();
+    if (hay.indexOf(q) !== -1) return true;
+    if ((item.signals || []).some(function (s) { return String(s).toLowerCase().indexOf(q) !== -1; })) return true;
+    return false;
+  }
+
+  /* 案例 → 规则词条：同坑型的规则全部链过去，两栏互相支撑 */
+  function ruleLinks(type) {
+    var rs = (window.QZQ_TRAPS || []).filter(function (r) { return r.type === type; });
+    if (!rs.length) return '<span style="color:#788491;">（该坑型暂无对应规则条）</span>';
+    return rs.map(function (r) {
+      return '<a class="chip" style="display:inline-block;margin:4px 6px 0 0;height:auto;padding:3px 10px;text-decoration:none;" href="rules/' +
+        App.esc(r.id) + '.html" title="' + App.esc(r.name) + '">' + App.esc(r.id) + ' ' + App.esc(r.ask) + '</a>';
+    }).join('');
+  }
+
+  function card(item) {
+    var fav = App.isFav(item.id);
+    var signals = (item.signals || []).map(function (s) { return '<li>' + App.esc(s) + '</li>'; }).join('');
+    return '<article class="trap" data-id="' + App.esc(item.id) + '">' +
+      '<div class="trap-top">' +
+        '<div>' +
+          '<h3>' + App.esc(item.title) + '</h3>' +
+          '<div class="meta">' +
+            '<span class="badge badge-' + App.esc(item.level) + '">' + App.esc(item.level) + '风险</span>' +
+            '<span class="badge badge-gray">' + App.esc(item.type) + '</span>' +
+            '<span class="badge badge-gray">' + App.esc(item.id) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<button type="button" class="fav' + (fav ? ' on' : '') + '" data-fav="' + App.esc(item.id) + '" title="收藏" aria-label="收藏">' + starSvg(fav) + '</button>' +
+      '</div>' +
+      '<p class="txt">' + App.esc(item.scene) + '</p>' +
+      '<div class="detail">' +
+        '<div class="row"><b>当时有哪些信号</b><ul style="margin:6px 0 0;">' + signals + '</ul></div>' +
+        '<div class="row"><b>后来怎么样了</b><br>' + App.esc(item.consequence) + '</div>' +
+        '<div class="row"><b>怎么处理</b><br>' + App.esc(item.advice) + '</div>' +
+        '<div class="row"><b>来源</b><br><span style="color:#788491;font-size:12.5px;">' + App.esc(item.source) + '</span></div>' +
+        '<div class="row"><b>对应的规则条</b><br>' + ruleLinks(item.type) + '</div>' +
+      '</div>' +
+      '<div class="hint" style="margin-top:10px;cursor:pointer;" data-toggle="' + App.esc(item.id) + '">展开详情 ▾</div>' +
+    '</article>';
+  }
+
+  function render() {
+    var list = App.$('#trap-list');
+    var items = DATA.filter(match);
+    if (!items.length) {
+      list.innerHTML = '<div class="empty" style="grid-column:1/-1;">没有符合条件的案例。换个关键词，或点「全部」清掉筛选。</div>';
+    } else {
+      list.innerHTML = items.map(card).join('');
+    }
+    var line = App.$('#count-line');
+    if (line) {
+      line.textContent = (state.q || state.type || state.favOnly)
+        ? '筛选到 ' + items.length + ' 条 / 已收录 ' + DATA.length + ' 条'
+        : '已收录 ' + DATA.length + ' 条';
+    }
+  }
+
+  function bindList() {
+    var list = App.$('#trap-list');
+    list.addEventListener('click', function (e) {
+      var favBtn = e.target.closest('[data-fav]');
+      if (favBtn) {
+        var on = App.toggleFav(favBtn.getAttribute('data-fav'));
+        App.toast(on ? '已收藏' : '已取消收藏');
+        render();
+        return;
+      }
+      var toggle = e.target.closest('[data-toggle]');
+      var art = e.target.closest('.trap');
+      if (!art) return;
+      if (toggle || e.target.classList.contains('txt') || e.target.tagName === 'H3') {
+        art.classList.toggle('open');
+        var tip = art.querySelector('[data-toggle]');
+        if (tip) tip.textContent = art.classList.contains('open') ? '收起 ▴' : '展开详情 ▾';
+      }
+    });
+  }
+
+  function load() {
+    /* 优先用 js/data.js 内联的数据：双击（file://）也能读到，不受 fetch 限制。
+       没有内联文件时才退回 fetch，方便改完 data/*.json 直接刷新看效果。 */
+    var inline = window.QZQ_DATA && window.QZQ_DATA.traps;
+    if (inline && inline.length) {
+      DATA = inline;
+      render();
+      return;
+    }
+    fetch('data/traps.json').then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (data) {
+      DATA = Array.isArray(data) ? data : [];
+      render();
+    }).catch(function (err) {
+      var list = App.$('#trap-list');
+      list.innerHTML = '<div class="empty" style="grid-column:1/-1;">' +
+        '案例数据读取失败（' + App.esc(err.message) + '）。<br>' +
+        '请确认 js/data.js 或 data/traps.json 存在；用 Chrome／Edge 双击打开一般都可正常读取。</div>';
+    });
+  }
+
+  function init() {
+    var q = App.$('#q');
+    if (q) q.addEventListener('input', function () { state.q = q.value.trim(); render(); });
+
+    App.$$('#filters .chip').forEach(function (c) {
+      c.addEventListener('click', function () {
+        state.type = c.getAttribute('data-type');
+        App.$$('#filters .chip').forEach(function (x) { x.classList.remove('on'); });
+        c.classList.add('on');
+        render();
+      });
+    });
+
+    var favOnly = App.$('#fav-only');
+    if (favOnly) favOnly.addEventListener('click', function () {
+      state.favOnly = !state.favOnly;
+      favOnly.classList.toggle('on', state.favOnly);
+      render();
+    });
+
+    /* 从规则词条页跳来时带着 ?type=，直接筛到对应坑型 */
+    (function fromUrl() {
+      var m = /[?&]type=([^&]*)/.exec(window.location.search || '');
+      if (!m) return;
+      var ty = '';
+      try { ty = decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { ty = m[1]; }
+      ty = ty.trim();
+      if (!ty) return;
+      state.type = ty;
+      App.$$('#filters .chip').forEach(function (x) {
+        x.classList.toggle('on', x.getAttribute('data-type') === ty);
+      });
+    })();
+
+    bindList();
+    load();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>

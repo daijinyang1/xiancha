@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合同风险扫描 · 先查</title>
+<meta name="description" content="粘贴实习合同、三方协议原文，本地规则引擎逐条标出押金、培训贷、无薪试岗、加班、违约金等风险点，并给出法律依据与修改建议。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="scan.html" class="active">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+
+    <div class="page-head">
+      <span class="kicker">核心功能</span>
+      <h1 style="font-size:26px;">合同风险扫描</h1>
+      <p>把合同原文粘贴到左边，点「开始扫描」。命中的句子会在原文里标红，右侧逐条列出风险等级、原句、为什么有风险、法律依据和修改建议。</p>
+    </div>
+
+    <div class="notice" id="privacy-tip" style="margin-bottom:14px;">
+      <strong>隐私提示：</strong>合同只在你的浏览器里处理，不会上传到我们的服务器。所有解析、脱敏、匹配都在本机完成，断网也能用。
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div class="tabs">
+        <button type="button" class="tab-btn active" data-mode="local">本地模式（推荐）</button>
+        <button type="button" class="tab-btn" data-mode="ai">AI 增强模式（可选）</button>
+      </div>
+
+      <div class="tab-panel active" data-panel="local">
+        <p class="hint" style="margin-top:0;margin-bottom:10px;">本地模式用内置的规则库逐条比对，不联网、不需要任何账号，断网、断服务器都能跑。演示现场首选用这个。</p>
+      </div>
+
+      <div class="tab-panel" data-panel="ai">
+        <p class="hint" style="margin-top:0;margin-bottom:12px;">
+          AI 模式会在本地规则的基础上，额外把<b>脱敏后</b>的文本发给你指定的模型服务商，让它做更细的解释。
+          Key 只存在你这台电脑的浏览器里，换台电脑或换个人用就看不到；<b>不要在公共／别人的电脑上填自己的 Key</b>。
+          没有 Key 或调用失败时，会自动退回本地模式，扫描结果不受影响。
+        </p>
+        <div class="settings">
+          <div class="field">
+            <label for="ai-key">API Key</label>
+            <input class="input" id="ai-key" type="password" autocomplete="off" placeholder="sk-...（只保存在本机浏览器）">
+            <div class="hint">填写后会以明文存进本浏览器的 localStorage，请勿在共用电脑上保存。</div>
+          </div>
+          <div class="field">
+            <label for="ai-base">接口地址（OpenAI 兼容）</label>
+            <input class="input" id="ai-base" type="text" autocomplete="off" placeholder="https://api.openai.com/v1">
+            <div class="hint">填到 /v1 即可，程序会自动补 /chat/completions；也可以填你用的服务商地址。</div>
+          </div>
+          <div class="field">
+            <label for="ai-model">模型名</label>
+            <input class="input" id="ai-model" type="text" autocomplete="off" placeholder="gpt-4o-mini">
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-save-ai">保存到本机</button>
+            <button type="button" class="btn btn-sm btn-danger" id="btn-clear-key">删除已保存的 Key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scan-grid" style="margin-top:16px;">
+
+      <section class="pane">
+        <div class="pane-head">
+          <h3>合同原文</h3>
+          <span class="counter" id="char-count">0 字</span>
+        </div>
+        <textarea class="textarea" id="contract-input" style="min-height:220px;" placeholder="把实习协议、三方协议或劳动合同的正文粘贴到这里。&#10;&#10;不用手动删身份证号和手机号，扫描时会自动打码。"></textarea>
+        <div class="btn-row" style="margin-top:12px;">
+          <button type="button" class="btn btn-primary" id="btn-scan">开始扫描</button>
+          <button type="button" class="btn" id="btn-demo">填入示例合同</button>
+          <button type="button" class="btn btn-ghost" id="btn-clear-scan">清空</button>
+        </div>
+        <div class="hint" id="restore-tip" style="display:none;margin-top:10px;"></div>
+        <div style="margin-top:12px;">
+          <span class="sens-stat" id="sens-stat" style="display:none;"></span>
+        </div>
+      </section>
+
+      <aside class="pane">
+        <div class="pane-head">
+          <h3>风险概览</h3>
+          <div class="chip-counts" id="risk-counts">
+            <span class="badge badge-高">高 0</span>
+            <span class="badge badge-中">中 0</span>
+            <span class="badge badge-低">低 0</span>
+          </div>
+        </div>
+        <div class="score-box">
+          <div class="score" id="risk-score">--</div>
+          <div>
+            <div class="score-label">风险分（越高越要仔细看）</div>
+            <div style="font-size:13px;font-weight:700;" id="risk-level-text">等待扫描</div>
+          </div>
+        </div>
+        <div class="hint" style="margin-bottom:10px;">分数只用于排序提示，不是法律判断：一条「高」风险就值得你停下来问清楚。</div>
+        <div class="hint" id="risk-counts-note" style="margin-bottom:10px;"></div>
+
+        <div id="ai-output" style="display:none;margin-bottom:12px;"></div>
+
+        <div class="result-list" id="result-list">
+          <div class="doc-empty">扫描结果会显示在这里。<br>粘贴合同文本后点「开始扫描」。</div>
+        </div>
+
+        <div class="result-actions hidden" id="result-actions">
+          <div class="btn-row">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-copy">一键复制风险清单</button>
+            <button type="button" class="btn btn-sm" id="btn-txt">导出 .txt</button>
+            <button type="button" class="btn btn-sm btn-ghost" id="btn-ai-run">用 AI 再解释一遍</button>
+          </div>
+          <div class="hint" style="margin-top:8px;">导出的清单不含合同原文以外的个人信息（已脱敏）。建议把它发给学校就业指导老师看一眼。</div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="pane" style="margin-top:16px;">
+      <div class="pane-head"><h3>原文对照（命中处标红）</h3></div>
+      <div class="doc-view" id="doc-view">
+        <div class="doc-empty">扫描后，这里会显示脱敏后的合同原文，命中的句子用红色下划线标出，鼠标移到右侧卡片可以对照。</div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">扫描结果怎么用</h2></div>
+      <ol style="margin-bottom:0;font-size:14px;color:#45525F;">
+        <li>先看<b>高</b>风险那几条：押金、培训贷、无薪试岗、违约金，这四类一旦签了，钱和自由都容易被卡住。</li>
+        <li>拿着清单去谈，把「怎么改」那一句直接说给对方听，比如「这一条按《劳动合同法》第 9 条是不允许收押金的」。</li>
+        <li>对方坚持不改的，先别签；带上合同去学校就业指导中心，或拨 <b>12333</b> 咨询。</li>
+        <li>已经签了也不代表没办法：保留工资流水、打卡记录、聊天记录，必要时申请劳动仲裁。</li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/app.js"></script>
+<script src="js/scan.js"></script>
+</body>
+</html>

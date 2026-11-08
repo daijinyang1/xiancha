@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>考证日历 · 先查</title>
+<meta name="description" content="教师资格证、计算机二级、四六级、普通话、初级会计、驾照：报考门槛、报名与考试窗口、费用口径，以及离最近一次考试还有多久。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html" class="active">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="kicker">考证</span>
+      <h1 style="font-size:26px;">考证日历</h1>
+      <p>六张大学生最常考的证，按「报考门槛」筛。时间与费用一栏只写口径，<b>一律以官网当期公告为准</b>——考试时间年年调整，我们不复读旧日期，也不替你猜。</p>
+    </div>
+
+    <div class="notice notice-amber" style="margin-bottom:16px;">
+      <strong>关于日期：</strong>本页不预置任何考试日期。倒计时里显示「待官网公布」的，请点对应官网自己核对；如果你已经查到确切日期，可以在倒计时卡片里填一个，存在你本机，仅用于自己倒计时。
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div class="toolbar" style="margin-bottom:10px;">
+        <div class="filters" id="filters" style="margin-bottom:0;">
+          <button type="button" class="chip on" data-level="">全部</button>
+          <button type="button" class="chip" data-level="门槛低">门槛低</button>
+          <button type="button" class="chip" data-level="门槛中等">门槛中等</button>
+        </div>
+        <span style="font-size:13px;color:#788491;" id="count-line">共 6 张证书</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:150px;">证书</th>
+              <th style="width:80px;">门槛</th>
+              <th style="width:190px;">适合谁</th>
+              <th style="width:175px;">报名窗口</th>
+              <th style="width:175px;">考试窗口</th>
+              <th style="width:140px;">费用</th>
+              <th style="width:150px;">官网／机构</th>
+            </tr>
+          </thead>
+          <tbody id="cert-tbody">
+            <tr><td colspan="7" style="text-align:center;color:#788491;padding:40px;">正在读取证书数据……</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">距离最近一次考试</h2></div>
+      <p class="hint" style="margin-top:0;">官方还没公布日期的显示「待官网公布」。已公布的，你可以自己填进来，页面会算出还剩多少天；填过的日期只存在本机。</p>
+      <div class="cert-cards" id="cert-cards">
+        <div class="empty" style="grid-column:1/-1;">正在读取证书数据……</div>
+      </div>
+    </div>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">考证这件事，说几句实话</h2></div>
+      <ul style="margin-bottom:0;font-size:14px;color:#45525F;">
+        <li><b>证不是越多越好。</b>先看目标岗位的招聘要求，要求里没写的证，优先级往后排。</li>
+        <li><b>看报名条件。</b>四六级只限在校生，初级会计要高中及以上学历，教师资格认定还要普通话证书，卡在资格上比卡在考试上更常见。</li>
+        <li><b>时间以官网为准。</b>各省报名时间、费用、审核方式都不同；本页只给口径，不替代官网公告。</li>
+        <li><b>报名费之外还有隐性成本。</b>教材、培训、跨市考试的交通住宿，都要算进去。</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/app.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function () {
+  'use strict';
+  var App = window.QZQApp;
+  var Store = window.QZQStore;
+  var DATA = [];
+  var levelFilter = '';
+
+  function today() {
+    var d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function parseDate(str) {
+    if (!str) return null;
+    var m = /^(d{4})-(d{2})-(d{2})$/.exec(str);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function daysBetween(a, b) {
+    return Math.round((b.getTime() - a.getTime()) / 86400000);
+  }
+
+  function ownDates() {
+    var v = Store.get('certs.dates', {});
+    return v && typeof v === 'object' ? v : {};
+  }
+
+  function renderTable() {
+    var tbody = App.$('#cert-tbody');
+    var items = DATA.filter(function (c) { return !levelFilter || c.level === levelFilter; });
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#788491;padding:40px;">没有符合条件的证书。</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(function (c) {
+      return '<tr>' +
+        '<td><b>' + App.esc(c.name) + '</b>' + (c.note ? '<div style="font-size:12px;color:#788491;margin-top:4px;">' + App.esc(c.note) + '</div>' : '') + '</td>' +
+        '<td><span class="badge badge-' + (c.level === '门槛低' ? '低' : '中') + '">' + App.esc(c.level) + '</span></td>' +
+        '<td>' + App.esc(c.fit) + '</td>' +
+        '<td>' + App.esc(c.signup) + '</td>' +
+        '<td>' + App.esc(c.exam) + '</td>' +
+        '<td>' + App.esc(c.fee) + '</td>' +
+        '<td class="official">' + (c.signupUrl
+          ? '<a href="' + App.esc(c.signupUrl) + '" target="_blank" rel="noopener noreferrer">' + App.esc(c.official) + '</a>'
+          : App.esc(c.official)) + '</td>' +
+        '</tr>';
+    }).join('');
+    var line = App.$('#count-line');
+    if (line) line.textContent = (levelFilter ? '筛选到 ' + items.length + ' 张 / ' : '') + '共 ' + DATA.length + ' 张证书';
+  }
+
+  function renderCards() {
+    var box = App.$('#cert-cards');
+    var items = DATA.filter(function (c) { return !levelFilter || c.level === levelFilter; });
+    if (!items.length) {
+      box.innerHTML = '<div class="empty" style="grid-column:1/-1;">没有符合条件的证书。</div>';
+      return;
+    }
+    var mine = ownDates();
+    box.innerHTML = items.map(function (c) {
+      var key = c.id || c.name;
+      var iso = mine[key] || c.examDate || '';
+      var d = parseDate(iso);
+      var cd = '';
+      if (!d) {
+        cd = '<div class="countdown pending"><b>待官网公布</b><span>官方尚未公布确切日期</span></div>';
+      } else {
+        var left = daysBetween(today(), d);
+        if (left > 0) {
+          cd = '<div class="countdown"><b>' + left + '</b><span>天后 · ' + App.esc(iso) + (mine[key] ? '（你自己填的）' : '') + '</span></div>';
+        } else if (left === 0) {
+          cd = '<div class="countdown today"><b>就是今天</b><span>' + App.esc(iso) + '，记得带身份证和准考证</span></div>';
+        } else {
+          cd = '<div class="countdown pending"><b>已过 ' + Math.abs(left) + ' 天</b><span>' + App.esc(iso) + '，等下一期公告</span></div>';
+        }
+      }
+      var card = '<div class="cert">' +
+        '<h3>' + App.esc(c.name) + '</h3>' +
+        '<div class="sub">' + App.esc(c.level) + ' · ' + App.esc(c.official) + '</div>' +
+        cd +
+        '<div class="own-date">' +
+          '<input type="date" data-date-for="' + App.esc(key) + '" value="' + App.esc(iso) + '" aria-label="设置考试日期">' +
+          (mine[key] ? '<button type="button" class="btn btn-sm btn-ghost" data-clear-date="' + App.esc(key) + '">清除</button>' : '') +
+        '</div>' +
+        '<div class="hint" style="margin-top:8px;">日期以官网当期公告为准；填在这里只用于本机倒计时。</div>' +
+      '</div>';
+      return card;
+    }).join('');
+  }
+
+  function render() { renderTable(); renderCards(); }
+
+  function bindCards() {
+    App.$('#cert-cards').addEventListener('change', function (e) {
+      var inp = e.target.closest('[data-date-for]');
+      if (!inp) return;
+      var key = inp.getAttribute('data-date-for');
+      var val = inp.value;
+      var mine = ownDates();
+      if (val) mine[key] = val; else delete mine[key];
+      Store.set('certs.dates', mine);
+      App.toast(val ? '已记下这个日期（只存本机）' : '已清除');
+      renderCards();
+    });
+    App.$('#cert-cards').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-clear-date]');
+      if (!btn) return;
+      var key = btn.getAttribute('data-clear-date');
+      var mine = ownDates();
+      delete mine[key];
+      Store.set('certs.dates', mine);
+      App.toast('已清除');
+      renderCards();
+    });
+  }
+
+  function load() {
+    var inline = window.QZQ_DATA && window.QZQ_DATA.certs;
+    if (inline && inline.length) { DATA = inline; render(); return; }
+    fetch('data/certs.json').then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (d) { DATA = Array.isArray(d) ? d : []; render(); })
+      .catch(function (err) {
+        var msg = '证书数据读取失败（' + err.message + '）。请确认 js/data.js 或 data/certs.json 存在。';
+        App.$('#cert-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#788491;padding:40px;">' + App.esc(msg) + '</td></tr>';
+        App.$('#cert-cards').innerHTML = '<div class="empty" style="grid-column:1/-1;">' + App.esc(msg) + '</div>';
+      });
+  }
+
+  function init() {
+    App.$$('#filters .chip').forEach(function (c) {
+      c.addEventListener('click', function () {
+        levelFilter = c.getAttribute('data-level');
+        App.$$('#filters .chip').forEach(function (x) { x.classList.remove('on'); });
+        c.classList.add('on');
+        render();
+      });
+    });
+    bindCards();
+    load();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>

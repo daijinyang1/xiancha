@@ -1,0 +1,17 @@
+# 部署暂存（deploy.mjs 生成后会自动删）
+.stage/
+
+# wrangler 本地缓存
+.wrangler/
+.stage/
+
+# 系统与编辑器垃圾
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+
+# 明文凭据永远不要进仓库
+.env
+*.key
+*.pem

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>关于我们 · 先查</title>
+<meta name="description" content="「先查」是一个大学生查询站，先做就业避坑这一格：合同风险扫描、避坑案例库、考证日历。纯静态，两个人做，没有服务器，所有内容在浏览器本地运行。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html" class="active">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="kicker">关于</span>
+      <h1 style="font-size:26px;">关于「先查」</h1>
+      <p>我们不是什么大团队，就是两个在校学生。这个站最初是为了解决自己遇到的问题，后来发现身边的人也在重复踩同样的坑，才想着把它做出来。</p>
+    </div>
+
+    <section class="about-block">
+      <h2>为什么要做这个</h2>
+      <p>第一次签实习协议的时候，我们遇到的问题很具体：合同发来是一份 PDF，看着格式很正规，条款也看不太懂。问 HR，对方说「都是模板，大家都这么签」；问学长，学长说「我那份也差不多」。</p>
+      <p>后来才知道，同样的话术在不同的学校、不同的城市、不同的公司里被反复使用：先交押金、先交培训费、试岗不发工资、加班不给加班费、离职赔违约金。这些坑不难识别，难的是<b>第一次签的人根本不知道该看哪一段</b>。</p>
+      <p style="margin-bottom:0;">所以我们把这个辨认过程整理成了可以复用的东西：一份规则库，一些真实的案例，一张能查的证书表。不指望它能替你谈判，只希望你在签字之前，能多问一句。</p>
+    </section>
+
+    <section class="about-block">
+      <h2>这是什么，不是什么</h2>
+      <ul style="margin-bottom:0;">
+        <li><b>是</b>一个纯前端工具：双击 index.html 就能跑，不需要注册、不需要联网、不需要装任何东西。</li>
+        <li><b>是</b>一份提示清单：把常见的风险表述找出来，告诉你为什么、依据哪一条、可以怎么改。</li>
+        <li><b>不是</b>法律意见：规则命中不等于合同无效，不命中也不等于合同安全。</li>
+        <li><b>不是</b>律师替代品：涉及金额较大、已经签署、或者对方拒绝协商的，请找学校就业指导中心、当地劳动保障监察部门或 12333 咨询。</li>
+      </ul>
+    </section>
+
+    <section class="about-block">
+      <h2>我们怎么处理你的合同</h2>
+      <p><b>本地模式下，你的合同一个字节都不会离开这台电脑。</b>所有操作——脱敏、正则匹配、生成清单——都在浏览器里完成，页面不发任何网络请求。断网状态下照样能用。</p>
+      <p>扫描之前，程序会先把身份证号、手机号、统一社会信用代码、银行卡号替换成 ●●●●，并告诉你隐藏了几处。这样做是为了让你在导出清单、发给朋友看的时候，不至于连个人信息一起带出去。</p>
+      <p style="margin-bottom:0;">AI 模式是可选的增强：只有你自己填了 API Key，程序才会把<b>脱敏后</b>的文本发给你指定的模型服务商。Key 存在本机浏览器里，不经过我们——事实上我们也没有服务器可以收。调用失败时，程序会自动退回本地模式，扫描结果不受影响。</p>
+    </section>
+
+    <section class="about-block">
+      <h2>规则库是怎么来的</h2>
+      <ul class="plain-list">
+        <li><b>法条</b>：以《劳动合同法》《劳动法》《社会保险法》《民法典》等现行法律的条文序号为依据。页面里只写条号，不复述条文原文，避免抄错。</li>
+        <li><b>案例</b>：来自公开报道、高校就业指导材料与公开劳动争议案例，全部做了脱敏改写：不出现公司全称、不出现真实姓名、金额与时间做模糊处理。</li>
+        <li><b>证书</b>：只写可确认的报名机构与口径。考试时间、报名时间、费用一律标注「以官网当期公告为准」，不预置具体日期——因为这类信息每年都在变，写死反而误导人。</li>
+      </ul>
+    </section>
+
+    <section class="about-block">
+      <h2>这个站的边界</h2>
+      <p>规则库目前 63 条，覆盖押金、培训贷、无薪试岗、违约金、社保、加班、合同文本、离职八个方向。它认的是<b>表述</b>，不是<b>事实</b>：</p>
+      <ul>
+        <li>同一句话在不同上下文里可能完全合法，所以要结合原句自己判断；</li>
+        <li>有些坑不靠文字体现（比如口头承诺、实际执行与合同不符），规则扫不出来；</li>
+        <li>各地的最低工资、社保比例、裁审口径有差异，具体以当地规定为准。</li>
+      </ul>
+      <p style="margin-bottom:0;">如果发现某条规则判定得不准，或者你有更典型的案例愿意提供（脱敏后即可），欢迎反馈。这个库是一点点长起来的，多一条真实的案例，就少一个人踩坑。</p>
+    </section>
+
+    <section class="about-block">
+      <h2>技术上说两句</h2>
+      <p style="margin-bottom:0;">整站是纯静态的 HTML + CSS + 原生 JavaScript，没有框架、没有构建步骤、没有第三方依赖、没有外链字体和图片。所有图标都是内联 SVG。数据用 localStorage 存在本机，命名空间统一为 <code>xc.*</code>，可以随时在「避坑库」页导出成 JSON 备份，也可以一键清空。</p>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h2 style="font-size:16px;">致谢与说明</h2></div>
+      <p style="margin-bottom:6px;">站内的法条条号参考现行公开法律文本；案例为脱敏改写，不对应任何具体企业与个人；证书信息仅作检索入口，一切以官方网站当期公告为准。</p>
+      <p class="hint" style="margin-bottom:0;">本站不收集任何用户数据，不设账号体系，不做统计埋点。</p>
+    </section>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

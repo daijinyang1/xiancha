@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>规则词条 · 63 条实习与劳动合同风险 · 先查</title>
+<meta name="description" content="把 63 条实习合同风险规则拆成可查的词条：每一条写清命中长什么样、为什么有风险、依据哪一条法律、该怎么改。支持关键词搜索与按坑型筛选。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html" class="active">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="kicker">规则词条</span>
+      <h1 style="font-size:26px;">63 条风险规则，一条一页</h1>
+      <p>这里是扫描引擎用的那份规则库，原样拆成可查的词条。想查一句话「这样写有没有坑」，搜关键词就行；想知道某条为什么有风险、依据哪一条法律、让对方怎么改，点开词条。命中的表述不等于一定违法，最终仍要以原句、上下文和实际情况核对。</p>
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>
+          <input type="search" id="q" placeholder="搜风险名称或条款关键词，比如：押金、违约金、社保、加班费、竞业" autocomplete="off">
+        </div>
+        <span class="counter" id="count-line" style="font-size:13px;color:#788491;">共 63 条</span>
+      </div>
+      <div class="filters" id="filters">
+        <button type="button" class="chip on" data-type="">全部</button>
+        <button type="button" class="chip" data-type="押金类">押金类</button>
+        <button type="button" class="chip" data-type="培训贷">培训贷</button>
+        <button type="button" class="chip" data-type="无薪试岗">无薪试岗</button>
+        <button type="button" class="chip" data-type="违约金">违约金</button>
+        <button type="button" class="chip" data-type="社保">社保</button>
+        <button type="button" class="chip" data-type="加班">加班</button>
+        <button type="button" class="chip" data-type="合同文本">合同文本</button>
+        <button type="button" class="chip" data-type="离职">离职</button>
+      </div>
+      <div class="filters" id="level-filters" style="margin-top:8px;">
+        <button type="button" class="chip on" data-level="">全部等级</button>
+        <button type="button" class="chip" data-level="高">高风险</button>
+        <button type="button" class="chip" data-level="中">中风险</button>
+        <button type="button" class="chip" data-level="低">低风险</button>
+      </div>
+      <div class="hint">数据来源：js/traps.js（与扫描引擎同一份规则，不是另抄一遍）。点词条展开法条与修改建议。</div>
+    </div>
+
+    <div class="trap-grid" id="rule-list" style="margin-top:16px;">
+      <div class="empty" style="grid-column:1/-1;">正在读取规则库……</div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">这些词条是怎么来的</h2></div>
+      <ul class="plain-list" style="margin-bottom:0;">
+        <li><b>来源一 · 真实合同。</b>同学、学长学姐签过的实习协议与三方协议，脱敏后逐条读，读到可疑的表述就记下来。</li>
+        <li><b>来源二 · 公开裁判文书。</b>用中国裁判文书网检索「实习 违约金」「试岗 工资」，把被法院认定无效的条款抄出来。</li>
+        <li><b>来源三 · 人社部门通报。</b>各地人社局公示的「重大劳动保障违法行为」，违法事实可以直接对应成规则。</li>
+        <li><b>来源四 · 法条本身。</b>《劳动合同法》《劳动法》《社会保险法》《著作权法》《民法典》合同编，凡是带「不得」「应当」的条文，都能变成一条规则。</li>
+        <li><b>一条规则十个字段：</b>编号、学生会搜的那个问题、一句判定、风险名称、坑型、等级、触发正则、为什么有风险、法律依据、怎么改。缺一个都不算合格。</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><h2 style="font-size:16px;">全部 63 条（固定链接，可直接收藏或引用）</h2><span class="badge badge-gray">静态页</span></div>
+      <p class="hint" style="margin-top:0;">每一条都有自己的地址（<code>rules/R01.html</code> … <code>rules/R63.html</code>），不依赖脚本渲染，断网、搜索引擎、答辩现场直接用浏览器打开都能看。</p>
+      <div id="all-index" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var App = window.QZQApp;
+  var RULES = window.QZQ_TRAPS || [];
+  var state = { q: '', type: '', level: '' };
+
+  var list = document.getElementById('rule-list');
+  var countLine = document.getElementById('count-line');
+
+  function match(r) {
+    if (state.type && r.type !== state.type) return false;
+    if (state.level && r.level !== state.level) return false;
+    if (!state.q) return true;
+    var q = state.q.toLowerCase();
+    var hay = [r.id, r.ask, r.verdict, r.name, r.type, r.why, r.law, r.fix].join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  }
+
+  function item(r) {
+    /* 标题用「学生真正会搜的那句话」（ask），风险名称放副标。
+       点标题去独立的静态词条页 rules/R01.html —— 那一页才是搜索引擎能收录的正文。 */
+    return '<article class="trap" data-id="' + App.esc(r.id) + '">' +
+      '<div class="trap-top"><div>' +
+        '<h3><a href="rules/' + App.esc(r.id) + '.html">' + App.esc(r.ask || r.name) + '</a></h3>' +
+        '<div class="meta">' +
+          '<span class="badge badge-' + App.esc(r.level) + '">' + App.esc(r.level) + '风险</span>' +
+          '<span class="badge badge-gray">' + App.esc(r.type) + '</span>' +
+          '<span class="badge badge-gray">' + App.esc(r.id) + '</span>' +
+          '<span class="badge badge-gray">' + App.esc(r.name) + '</span>' +
+        '</div>' +
+      '</div></div>' +
+      '<p class="txt">' + App.esc(r.verdict || r.why) + '</p>' +
+      '<div class="detail">' +
+        '<div class="row"><b>法律依据</b><br>' + App.esc(r.law) + '</div>' +
+        '<div class="row"><b>怎么改</b><br>' + App.esc(r.fix) + '</div>' +
+        '<div class="row" style="color:#788491;">用这条去扫描：把合同原文粘进「合同扫描」，命中会自动标红。</div>' +
+      '</div>' +
+      '<div style="margin-top:10px;">' +
+        '<button type="button" class="btn btn-sm" data-toggle="' + App.esc(r.id) + '">展开详情</button> ' +
+        '<a class="btn btn-sm" href="rules/' + App.esc(r.id) + '.html">单独打开这一条 →</a>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function render() {
+    var rows = RULES.filter(match);
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty" style="grid-column:1/-1;">没有匹配的规则。换个关键词，或者点「全部」。</div>';
+    } else {
+      list.innerHTML = rows.map(item).join('');
+    }
+    if (countLine) countLine.textContent = '共 ' + RULES.length + ' 条，当前显示 ' + rows.length + ' 条';
+  }
+
+  document.getElementById('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b || !b.dataset.type && b.dataset.type !== '') return;
+    Array.prototype.forEach.call(this.querySelectorAll('.chip'), function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    state.type = b.dataset.type;
+    render();
+  });
+
+  var levelBox = document.getElementById('level-filters');
+  levelBox.addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll('.chip'), function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    state.level = b.dataset.level;
+    render();
+  });
+
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () { state.q = q.value.trim(); render(); });
+
+  /* 从首页搜索框跳过来时带着 ?q=，直接把它填进搜索框并筛好 */
+  (function fromUrl() {
+    var m = /[?&]q=([^&]*)/.exec(window.location.search || '');
+    if (!m) return;
+    var word = '';
+    try { word = decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { word = m[1]; }
+    word = word.trim();
+    if (!word) return;
+    q.value = word;
+    state.q = word;
+    var hit = RULES.filter(match).length;
+    if (!hit && countLine) countLine.textContent = '没搜到「' + word + '」。换个词，或者点「全部」看 63 条。';
+  })();
+
+  list.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-toggle]');
+    var card = e.target.closest('.trap');
+    if (btn && card) {
+      card.classList.toggle('open');
+      btn.textContent = card.classList.contains('open') ? '收起详情' : '展开详情';
+    }
+  });
+
+  (function allIndex() {
+    var box = document.getElementById('all-index');
+    if (!box) return;
+    box.innerHTML = RULES.map(function (r) {
+      return '<a class="chip" href="rules/' + App.esc(r.id) + '.html" title="' + App.esc(r.ask) + '">' +
+        App.esc(r.id) + ' ' + App.esc(r.name) + '</a>';
+    }).join('');
+  })();
+
+  render();
+})();
+</script>
+</body>
+</html>

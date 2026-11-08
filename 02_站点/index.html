@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>先查 · 大学生遇事先查一遍</title>
+<meta name="description" content="毕业、找工作、签合同、考证、办手续，先来查一遍。现在主线是实习与劳动合同避坑：粘一份合同，本机扫出押金、培训贷、无薪试岗、加班无加班费这些坑。全部在你的浏览器本地处理。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">查</span>
+        <span class="brand-text">先查<small>XIAN CHA</small></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="active">首页</a>
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </nav>
+    </div>
+  </header>
+
+<main>
+  <div class="wrap">
+    <section class="hero">
+      <span class="kicker">大学生的查询站 · 遇事先查一遍</span>
+      <h1>该知道的事，先<em>查</em>一遍。</h1>
+      <p class="lead">毕业、找工作、签合同、考证、办手续——这些事第一次遇上，最怕的不是难，是<b>不知道该问什么</b>。这里的每一页都只干一件事：把该问的问题提前摆到你面前，把依据和出处写清楚。现在的主线是就业避坑，从实习协议和劳动合同开始。</p>
+      <div class="hero-search">
+        <div class="search search-lg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>
+          <input type="search" id="hero-q" placeholder="搜一个词，比如：押金、违约金、试用期、竞业、社保……" autocomplete="off" aria-label="在全站内容里搜索">
+        </div>
+        <div class="filters" style="margin:10px 0 0;">
+          <button type="button" class="chip" data-sample="押金">押金</button>
+          <button type="button" class="chip" data-sample="违约金">违约金</button>
+          <button type="button" class="chip" data-sample="试用期">试用期</button>
+          <button type="button" class="chip" data-sample="社保">社保</button>
+          <button type="button" class="chip" data-sample="加班费">加班费</button>
+          <button type="button" class="chip" data-sample="竞业">竞业</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="scan.html" style="height:44px;padding:0 22px;font-size:15px;">粘贴合同全文，逐句扫一遍</a>
+        <a class="btn" href="traps.html" style="height:44px;padding:0 22px;font-size:15px;">看看别人踩过的坑</a>
+      </div>
+      <p class="hint" style="margin:10px 0 0;">已有 63 条风险规则、12 个真实案例、6 张证书，全部免费、不用登录、不用上传。搜索只在你的浏览器里跑。</p>
+      <div class="stats">
+        <div class="stat"><b id="stat-rules">63</b><span>条本地风险规则</span></div>
+        <div class="stat"><b id="stat-traps">12</b><span>个真实套路案例</span></div>
+        <div class="stat"><b id="stat-certs">6</b><span>张证书查询</span></div>
+        <div class="stat"><b>0</b><span>字节上传到服务器</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h2>三层：现在能查的、排队的、不做的</h2><span class="badge badge-gray">路线</span></div>
+      <p class="hint" style="margin-top:0;">先把话说清楚：这不是一个「合同扫描器」，是一个查东西的地方。合同扫描是目前唯一做完了的那一格，其余的格子我列出来，是为了让你知道这里以后会长成什么样，也是为了不骗你。</p>
+
+      <h3 style="font-size:16px;margin:18px 0 8px;">第一层 · 现在就能查（已经能用）</h3>
+      <div class="entries entries-4" style="margin-bottom:6px;">
+        <a class="entry" href="scan.html">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>
+          </span>
+          <h3>合同风险扫描</h3>
+          <p>粘贴实习协议、三方协议或劳动合同原文，逐句匹配 63 条规则，命中处标红，给出风险等级、法律依据与修改建议。断网也能用。</p>
+          <span class="more">去扫描 →</span>
+        </a>
+        <a class="entry" href="traps.html">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3z"></path><line x1="12" y1="9.5" x2="12" y2="14"></line><circle cx="12" cy="17" r="0.6" fill="currentColor"></circle></svg>
+          </span>
+          <h3>避坑案例库</h3>
+          <p>12 个脱敏改写过的真实套路，按押金、培训贷、社保、加班等 8 类筛选，每条都写清了「当时有哪些信号」和「后来怎么处理」。</p>
+          <span class="more">翻案例 →</span>
+        </a>
+        <a class="entry" href="rules.html">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"></path><polyline points="15 4 15 9 20 9"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>
+          </span>
+          <h3>规则词条</h3>
+          <p>63 条风险规则一条一页，每条都是「学生真正会问的那句话」加一句判定、法条原文和改法，可搜可筛，每条有自己的固定网址。</p>
+          <span class="more">查词条 →</span>
+        </a>
+        <a class="entry" href="certs.html">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></svg>
+          </span>
+          <h3>考证日历</h3>
+          <p>教师资格证、计算机二级、四六级、普通话、初级会计、驾照：报考门槛、报名与考试窗口、费用口径，以及离你最近一次考试还有多久。</p>
+          <span class="more">查证书 →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 style="font-size:16px;margin:0 0 8px;">第二层 · 排队中（还没做，不装的）</h3>
+      <p class="hint" style="margin-top:0;">下面这些是我认为同样值得查、但现在还没做的东西。写在首页上，是提醒自己别把「以后要做」说成「已经做了」。按顺序来，一次只加一格。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:120px;">主题</th><th>要回答的问题</th><th style="width:120px;">状态</th></tr></thead>
+          <tbody>
+            <tr><td>三方协议与档案</td><td>签了三方还能反悔吗、档案放哪、报到证取消了怎么办、派遣怎么走</td><td><span class="badge badge-gray">未开始</span></td></tr>
+            <tr><td>社保与公积金</td><td>实习要不要交社保、断缴有什么影响、基数怎么算、异地能不能转</td><td><span class="badge badge-gray">未开始</span></td></tr>
+            <tr><td>租房与押金</td><td>押一付三合不合规、中介费怎么退、转租违约、退租时怎么留证</td><td><span class="badge badge-gray">未开始</span></td></tr>
+            <tr><td>助学贷款与征信</td><td>什么时候开始还、怎么还、逾期记录怎么消</td><td><span class="badge badge-gray">未开始</span></td></tr>
+            <tr><td>求职中的骗局</td><td>收费内推、虚假管培生、传销与刷单招聘、面试收费怎么识别</td><td><span class="badge badge-gray">未开始</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-bottom:0;">判断标准很简单：一个主题只有同时满足「有明确的坑型清单」「能写成可查的条目」「有公开可核的出处」三条，才会从这一层挪到上面那一层。凑不齐就继续排队，不做成半懂不懂的页面。</p>
+    </section>
+
+    <section class="card">
+      <h3 style="font-size:16px;margin:0 0 8px;">第三层 · 明确不做</h3>
+      <ul class="plain-list" style="margin-bottom:0;">
+        <li><b>不做法律咨询、不做维权代理。</b>只提示「这里有风险」，不承诺结果、不代替律师。涉及金额较大、已经签署、或对方拒绝协商的，请走学校就业指导中心或 12333。</li>
+        <li><b>不做社区、投稿、评论区。</b>一旦有用户生成内容，就要审核、担责、处理投诉，这是我们扛不住的成本。</li>
+        <li><b>不做 App、不做小程序。</b>网页在手机上本来就能开，多一个审核流程换不来任何体验提升。</li>
+        <li><b>不做付费墙。</b>能查的东西就让你查，不收钱。以后如果活不下去，会先跟你说明白，而不是悄悄把话说一半。</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h2>合同扫描这一格怎么用</h2><span class="badge badge-低">纯本地</span></div>
+      <ol style="margin-bottom:0;">
+        <li><b>脱敏</b>：先把身份证号、手机号、统一社会信用代码、银行卡号替换成 ●●●●，并告诉你隐藏了几处。</li>
+        <li><b>匹配</b>：用 63 条规则逐条扫原文，命中的句子标红；同一句命中多条会合并成一张卡片，不重复刷屏。</li>
+        <li><b>解释</b>：每条风险给出「为什么有风险」「依据哪一条」「怎么改」，法条只写条号，不编造条文原文。</li>
+        <li><b>带走</b>：一键复制或导出 .txt，拿去和 HR 谈，或者发给学长学姐看。</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h2>我们不说的话</h2></div>
+      <p style="margin-bottom:8px;">这里<b>不是律师</b>，也<b>不能替你判断一份合同一定违法</b>。规则库只认「常见的表述套路」，命中不等于无效，不命中也不等于安全。它的作用是把该问的问题提前摆到你面前，让你在动笔之前多问一句。</p>
+      <p class="hint" style="margin-bottom:0;">所有内容都在你的浏览器里跑，我们不收集、不上传你粘贴的合同。页面里写的费用与时间一律标了「以官网当期公告为准」，因为政策每年都在动，写成死日期就是把错的东西教给你。</p>
+    </section>
+  </div>
+</main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>「先查」· 大学生的查询站 · 全部内容在浏览器本地运行，不收集、不上传任何合同内容。</div>
+      <div class="links">
+        <a href="scan.html">合同扫描</a>
+        <a href="traps.html">避坑库</a>
+        <a href="rules.html">规则词条</a>
+        <a href="certs.html">考证日历</a>
+        <a href="about.html">关于我们</a>
+      </div>
+    </div>
+  </footer>
+<div class="toast" id="toast"></div>
+<script src="js/storage.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  /* 首页数字从真实数据源读，不写死 */
+  document.addEventListener('DOMContentLoaded', function () {
+    var rules = (window.QZQ_TRAPS || []).length;
+    var el = document.getElementById('stat-rules');
+    if (el && rules) el.textContent = rules;
+    var data = window.QZQ_DATA || {};
+    var t = document.getElementById('stat-traps');
+    if (t && data.traps) t.textContent = data.traps.length;
+    var c = document.getElementById('stat-certs');
+    if (c && data.certs) c.textContent = data.certs.length;
+  });
+</script>
+<script>
+(function () {
+  'use strict';
+  var App = window.QZQApp;
+  var RULES = window.QZQ_TRAPS || [];
+  var TRAPS = (window.QZQ_DATA && window.QZQ_DATA.traps) || [];
+  var CERTS = (window.QZQ_DATA && window.QZQ_DATA.certs) || [];
+
+  var q = document.getElementById('hero-q');
+  if (!q) return;
+
+  function go(word) {
+    var w = String(word || '').trim();
+    /* 搜什么交给两层：规则词条（结构化、有法条）+ 避坑库（故事、有信号词）。
+       首页只做分流，不做结果页，避免和两个栏目各写一套重复的搜索。 */
+    if (!w) { window.location.href = 'rules.html'; return; }
+    window.location.href = 'rules.html?q=' + encodeURIComponent(w);
+  }
+
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); go(q.value); }
+  });
+
+  var box = document.querySelector('.hero-search');
+  if (box) {
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-sample]');
+      if (!b) return;
+      q.value = b.getAttribute('data-sample');
+      go(q.value);
+    });
+  }
+})();
+</script>
+</body>
+</html>
