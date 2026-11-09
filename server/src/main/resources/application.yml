@@ -1,0 +1,57 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: xiancha-server
+  # 本地口令不写进仓库：项目根的 application-local.yml（已在 .gitignore）提供 DB_PASSWORD
+  config:
+    import: optional:file:./application-local.yml
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/xiancha?currentSchema=public&characterEncoding=UTF-8
+    username: ${DB_USERNAME:xiancha}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+      pool-name: xiancha-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: Asia/Shanghai
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    encoding: UTF-8
+    validate-on-migrate: true
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    com.xiancha: INFO
+    org.flywaydb: INFO
+  charset:
+    console: UTF-8
+    file: UTF-8
+  file:
+    name: logs/xiancha-server.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

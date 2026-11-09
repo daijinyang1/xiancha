@@ -1,17 +1,38 @@
-# 部署暂存（deploy.mjs 生成后会自动删）
+# ---- 部署暂存与本地缓存 ----
 .stage/
-
-# wrangler 本地缓存
 .wrangler/
-.stage/
 
-# 系统与编辑器垃圾
+# ---- 依赖与构建产物（不入库）----
+node_modules/
+.nuxt/
+.output/
+dist/
+target/
+__pycache__/
+*.pyc
+
+# ---- 运行日志 ----
+logs/
+*.log
+
+# ---- 截图产物（验收时本地生成）----
+tools/_shots/
+web/_shots/
+server/_shots/
+
+# ---- 系统与编辑器垃圾 ----
 Thumbs.db
 desktop.ini
 .DS_Store
 *.swp
 
-# 明文凭据永远不要进仓库
+# ---- 备份文件（本地回滚用，不入库）----
+*.bak
+*.bak-*
+
+# ---- 明文凭据永远不要进仓库 ----
 .env
+.env.*
 *.key
 *.pem
+application-local.yml

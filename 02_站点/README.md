@@ -24,43 +24,29 @@
 
 ---
 
-## 二、怎么传到公网（四步，全程不用命令行）
+## 二、已经上线了，怎么更新（一条命令）
 
-需要一个免费账号：GitHub（存代码）+ Cloudflare（免费托管）。
+**站点已经在线上：** <https://xiancha.pages.dev>
 
-**第 1 步：在 GitHub 建一个仓库**
+托管在 Cloudflare Pages 免费套餐（项目名 `xiancha`，Account ID `24c86e80a1c0e1459c679cd3ae0508ea`，production_branch = `main`）。
+**不接 GitHub、不走构建**——上传的是已经生成好的静态文件，不经过任何构建步骤。
 
-1. 打开 https://github.com ，注册或登录。
-2. 右上角 `+` → `New repository`。
-3. 仓库名随便起，比如 `qianziqian`，选 **Public**，**不要**勾选 "Add a README file"。
-4. 点 `Create repository`。
+**改完文件怎么更新：**
 
-**第 2 步：把 `02_站点` 里的文件拖进去**
+```
+node tools/deploy.mjs
+```
 
-1. 进入刚建好的仓库页面，点 `uploading an existing file`（或 `Add file` → `Upload files`）。
-2. 打开电脑上的 `02_站点` 文件夹，**全选里面的内容**（不是选文件夹本身），拖进浏览器页面。
-3. 确认列表里能看到 `index.html`、`css/`、`js/`、`data/`，然后点最下面的 `Commit changes`。
+它做三件事：把 `02_站点` 拷成一份干净的 `.stage/`（剔掉 `check.js` 与 `README.md`，这两个不该上线）→ 调 wrangler 上传 → 删掉 `.stage/`。约 1 秒。
 
-> ⚠️ 一定要保证 `index.html` 在仓库**根目录**，不能是 `02_站点/index.html` 这种多套一层。
-> 如果拖进去发现多了一层文件夹，删掉重新拖。
+wrangler 4.158.0 独立装在 `C:\Users\21971\.xiancha-deploy\`，不要把 node_modules 放临时目录（会被系统清理带走）。
 
-**第 3 步：Cloudflare Pages 连接这个仓库**
+**GitHub 只是代码存档，不是部署通道。** 仓库 <https://github.com/daijinyang1/xiancha> 用来备份源码；往 GitHub 上 push **不会**触发 Cloudflare 重新部署，要更新线上还是得跑 `node tools/deploy.mjs`。
 
-1. 打开 https://dash.cloudflare.com ，注册或登录（免费）。
-2. 左侧选 `Workers & Pages` → `Create` → `Pages` → `Connect to Git`。
-3. 授权 GitHub，选中刚才那个仓库，点 `Begin setup`。
-4. 构建设置全部留空：
-   - Framework preset：`None`
-   - Build command：**留空**
-   - Build output directory：**留空**（或填 `/`）
-5. 点 `Save and Deploy`，等一两分钟。
+**两个必须知道的 Pages 行为：**
 
-**第 4 步：拿到免费链接**
-
-部署完成后，Cloudflare 会给你一个形如 `https://qianziqian.pages.dev` 的地址，
-这就是公网可访问的站点，手机、别人电脑都能打开。
-
-以后改了文件，只要在 GitHub 上重新上传一次，Cloudflare 会自动重新部署，链接不变。
+1. 访问 `/xxx.html` 会被 308 重定向到 `/xxx`——所以对外链接、sitemap 一律写干净地址（`/scan`、`/rules/R01`）。
+2. `_headers` 是给 Pages 消费的配置，直接访问它本身返回 404 属正常，不是故障。
 
 > 免费额度对比赛演示绰绰有余。注意：`*.pages.dev` 在国内部分网络环境下可能访问较慢，
 > 所以下面还要准备兜底方案。
