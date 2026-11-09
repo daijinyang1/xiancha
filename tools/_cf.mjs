@@ -104,6 +104,17 @@ const base = `/client/v4/accounts/${ACC}/pages/projects`;
     const r = await cf('POST', `${base}/${name}/deployments`, { branch: branch || 'main' });
     console.log('status', r.status);
     console.log(r.status === 200 ? JSON.stringify(r.json.result.stages || r.json.result, null, 1).slice(0, 600) : r.raw.slice(0, 500));
+  } else if (cmd === 'create') {
+    // node tools/_cf.mjs create <name> [owner] [repo] [branch]
+    const [name, owner, repo, branch] = args;
+    const source = owner
+      ? { type: 'github', config: { owner, repo_name: repo, production_branch: branch || 'main' } }
+      : undefined;
+    const r = await cf('POST', base, source
+      ? { name, source }
+      : { name, production_branch: 'main' });
+    console.log('status', r.status);
+    console.log(r.status === 200 ? JSON.stringify({ name: r.json.result.name, subdomain: r.json.result.subdomain, domains: r.json.result.domains }) : r.raw.slice(0, 500));
   } else if (cmd === 'delete') {
     const r = await cf('DELETE', `${base}/${args[0]}`);
     console.log('status', r.status, r.raw.slice(0, 200));

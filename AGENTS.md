@@ -71,9 +71,13 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 - [ ] https://xiancha.pages.dev 能打开（静态版），404 兜底生效
 - [ ] 手机打开一次，确认不是只在本机能开
 
-## 7. 当前状态（2026-11-08）
+## 7. 当前状态（2026-11-09）
 - **本机全栈**：`启动.bat` 三端口齐（5432 PostgreSQL / 8080 后端 / 3000 前端），`smoke.mjs` 44/44、`cdp_web.mjs` 7/7。
-- **线上静态版**：https://xiancha.pages.dev （Cloudflare Pages 免费），六个主页面 + 63 词条 + 404 + robots + sitemap 全在。**不接 GitHub、不走构建**，`node tools/deploy.mjs` 一条命令上传。
-- **规模**：`web/app` 20 文件 158246 B；`server/src` 31 文件 99979 B；`db/` 4 文件 70187 B；`02_站点` 83 文件 535900 B（静态版，自检无错误）。
+- **线上静态版**：https://xiancha.pages.dev （Cloudflare Pages 免费），六个主页面 + 63 词条 + 404 + robots + sitemap 全在。
+  **已接 GitHub、走 Git 构建**：push 到 `main` 后自动克隆 → `node tools/stage-site.mjs .out` → 发布 `.out`（约 40～60 秒上线）。
+  手动抢发才用 `node tools/deploy.mjs`；两路径共用 `tools/stage-site.mjs` 的暂存规则（产物 81 文件）。
+- **规模**：`web/app` 20 文件 158246 B；`server/src` 31 文件 99979 B；`db/` 4 文件 70187 B；`02_站点` 84 文件 544377 B（自检无错误，多出的 `README.md.bak-pre-deploydoc-20261108` 不上线）。
 - **方案**：`01_方案/先查_主方案.docx` 69324 B（179 段 / 28 表），第五章已改写成前后端分离口径。
 - **未做**：`03_素材` 的访谈与真实合同收集（阳哥侧工作）；自定义域名未绑；全栈版没有公网部署（零预算，需一台常驻服务器）。
+- **凭据**：数据库口令在项目根 `application-local.yml`（已 gitignore），`application.yml` 只留 `${DB_PASSWORD:}` 占位。
+- **git 环境**：`http.sslBackend=openssl`（schannel 会报 `SEC_E_NO_CREDENTIALS`）、`http.sslverify=false`、`proxy=127.0.0.1:31181`。

@@ -64,7 +64,7 @@ python tools\verify_docx.py
 :: —— 以下只针对 02_站点 静态版 ——
 cd 02_站点 && node check.js       :: 静态自检（83 文件 535900 字节）
 node tools\e2e.mjs                :: 静态版真机验收 26 项
-node tools\deploy.mjs             :: 部署静态版到 Cloudflare Pages
+node tools\deploy.mjs             :: 手动直传（极少用，现在 push 即自动部署）
 node tools\live.mjs               :: 部署后线上验收
 ```
 
@@ -94,15 +94,36 @@ node tools\live.mjs               :: 部署后线上验收
 
 ## 部署静态版（02_站点）
 
+**现在 push 即部署：** `git push origin main` 后 Cloudflare Pages 自动克隆仓库、跑
+`node tools/stage-site.mjs .out`、把 `.out` 发布到 https://xiancha.pages.dev 。通常 40～60 秒上线。
+
 ```bat
-cd 02_站点 && node check.js   :: 必须「结果：无错误」
-node tools\deploy.mjs          :: stage 成 .stage/ → 上传 → 打印预览与生产地址
+cd 02_站点 && node check.js   :: 先自检，必须「结果：无错误」
+git add -A && git commit -m "说明" && git push
+```
+
+手动直传（仅当想在 push 之前抢发，或 Git 构建出问题时用）：
+
+```bat
+node tools\deploy.mjs          :: 暂存到 .stage/ → 直传 → 打印预览与生产地址
 node tools\live.mjs            :: 线上验收（真浏览器 + 截图）
 ```
 
-- wrangler 在 `C:\Users\21971\.xiancha-deploy\node_modules\wrangler\bin\wrangler.js`（4.158.0）。
-- 登录态在 `C:\Users\21971\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，过期就重跑 `wrangler login --device`。
+- Pages 项目名 `xiancha`，源 = GitHub `daijinyang1/xiancha` 的 `main` 分支，
+  构建命令 `node tools/stage-site.mjs .out`，输出目录 `.out`，根目录留空（仓库根）。
+- `tools/stage-site.mjs` 是两边的**唯一**暂存逻辑：排掉 `check.js`、`README.md`、
+  `*.bak*` `*.tmp` `*.orig` `*.log` `*.pyc` 与 `node_modules/__pycache__/_shots/.git`，产物 81 文件。
+  改排除规则只改这一个文件。
+- `tools/_cf.mjs` 是 Pages API 封装（需要时用）：`projects` / `project <名>` / `deployments <名>` /
+  `logs <名>` / `buildcfg <名> root_dir=.. destination_dir=.. build_command=..` / `deploy <名> [分支]` / `create` / `delete`。
+  **传参必须用 `key=value`**，PowerShell 会把空字符串参数吞掉。
+- `tools/_probe.mjs` 探测线上：`node tools\_probe.mjs xiancha.pages.dev /,/scan,/rules/R01`。
+- 登录态在 `C:\Users\21971\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，过期就重跑
+  `node C:\Users\21971\.xiancha-deploy\node_modules\wrangler\wrangler-dist\cli.js login --device`
+  （别用 `bin/wrangler.js`，它会 spawn 子进程报 `spawn EPERM`）。
 - Pages 会把 `/xxx.html` **308 跳**到 `/xxx`，对外一律用干净地址；`_headers` 直接访问返回 404 属正常。
+- 注意：直传项目**不能**原地改成 Git 源项目（API 报 `8000069 You cannot update the source object in a Direct Uploads project`）。
+  2026-11-09 的做法是删掉旧直传项目、用同名重建为 Git 源，子域名不变；删除后同名可重建，已验证。
 
 ## 代码仓库（GitHub）
 
@@ -112,7 +133,8 @@ git add -A && git commit -m "说明"
 git push
 ```
 
-- 仓库 **https://github.com/daijinyang1/xiancha**（public，main）。`.gitignore` 排掉 `.stage/`、`.wrangler/`、`node_modules/`、系统垃圾与明文凭据。
-- **push 不等于部署**：GitHub 只是代码存档；静态版部署仍走 `node tools\deploy.mjs`，全栈版本机跑。
-- 仓库是 public：密钥、token、密码一律不许提交。数据库口令只在本机 `application.yml` 里，且是本地开发口令。
+- 仓库 **https://github.com/daijinyang1/xiancha**（public，main）。`.gitignore` 排掉 `.stage/`、`.out/`、`.wrangler/`、`node_modules/`、系统垃圾与明文凭据。
+- **push 就是部署**（静态版）：Pages 监听 `main`，推送后自动构建上线，无需再跑 `deploy.mjs`。
+- 仓库是 public：密钥、token、密码一律不许提交。数据库口令在本机 `application-local.yml`（已 gitignore），`application.yml` 只留占位符。
 - `gh` 装在 `C:\Users\21971\.xiancha-deploy\gh\bin\gh.exe`（2.103.3），登录态在系统 keyring。
+- git 走 schannel 会报 `SEC_E_NO_CREDENTIALS`，已设 `git config --global http.sslBackend openssl` 修复。
