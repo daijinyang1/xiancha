@@ -71,13 +71,28 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 - [ ] https://xiancha.pages.dev 能打开（静态版），404 兜底生效
 - [ ] 手机打开一次，确认不是只在本机能开
 
-## 7. 当前状态（2026-11-09）
-- **本机全栈**：`启动.bat` 三端口齐（5432 PostgreSQL / 8080 后端 / 3000 前端），`smoke.mjs` 44/44、`cdp_web.mjs` 7/7。
-- **线上静态版**：https://xiancha.pages.dev （Cloudflare Pages 免费），六个主页面 + 63 词条 + 404 + robots + sitemap 全在。
-  **已接 GitHub、走 Git 构建**：push 到 `main` 后自动克隆 → `node tools/stage-site.mjs .out` → 发布 `.out`（约 40～60 秒上线）。
-  手动抢发才用 `node tools/deploy.mjs`；两路径共用 `tools/stage-site.mjs` 的暂存规则（产物 81 文件）。
-- **规模**：`web/app` 20 文件 158246 B；`server/src` 31 文件 99979 B；`db/` 4 文件 70187 B；`02_站点` 84 文件 544377 B（自检无错误，多出的 `README.md.bak-pre-deploydoc-20261108` 不上线）。
+## 7. 当前状态（2026-11-11）
+
+- **本机全栈**：`启动.bat` 三端口齐（5432 PostgreSQL / 8080 后端 / 3000 前端）时，`smoke.mjs` 44/44、`cdp_web.mjs` 7/7。
+- **线上静态版 = Nuxt 预渲染产物**（2026-11-11 换掉旧的手写 HTML 静态站）：https://xiancha.pages.dev
+  - Pages 项目 `xiancha`，源 `daijinyang1/xiancha@main`，**构建命令 `node tools/build-site.mjs .out`**，输出目录 `.out`，根目录留空。
+  - push 后 40～90 秒自动上线；产出口径 **163 文件 / 69 条 sitemap URL**（6 主页面 + 63 词条 + 404 + robots + `_headers`）。
+  - 输出形态是**扁平 `xxx.html`**（`nitro.prerender.autoSubfolderIndex: false`）。目录式输出会让 Pages 把 `/scan` 308 跳到 `/scan/`。
+  - 404 用预渲染的 `web/app/pages/not-found.vue` 顶替（`stage-site.mjs` 里改名成 `404.html`，8099 B / 正文 410 字）。
+    **不要用 `app/pages/404.vue`**：Nuxt 不预渲染该路径，产物里只剩空 `_payload.json`。
+  - 验收命令：`node tools/_body.mjs xiancha.pages.dev`（逐路由正文字数）、`node tools/_head.mjs xiancha.pages.dev /scan`（状态码与跳转）。
+- **静态预渲染的两个硬约束**（踩过，别再犯）：
+  1. `useApi()` 必须在 setup 期取 `useRuntimeConfig()` / `useState()` 并传给 `useAsyncData` 的 handler。
+     handler 在 setup 之外执行，晚取会抛 `NUXT_E1001`，异常被吞后页面永远停在「正在读取」，HTML 里 0 字。
+  2. `web/.env` **不能写 `NUXT_PUBLIC_API_BASE`**：`npm run generate` 也读 `.env`，会把 `127.0.0.1:8080` 烙进产物，
+     线上每页挂一条「后端未连接」。`nuxt.config.ts` 已按 `NODE_ENV` 硬挡，静态构建恒为空串。
+- **规模**：`web/app` 21 文件（新增 `error.vue` + `pages/not-found.vue`）；`server/src` 31 文件 99979 B；`db/` 4 文件 70187 B；
+  `02_站点` 84 文件 544377 B（第一版静态站，线上已不跑它，只作断网兜底；同名物理备份在 `_backup/旧版-静态站-20261109/`，另打 tag `v1-static-20261109`）。
+- **依赖版本（2026-11-11 全部 latest）**：nuxt 4.6.4 / vue 3.5.45 / pinia 4.1.0 / @pinia/nuxt 1.0.3 /
+  tailwindcss 4.3.5 / @tailwindcss/vite 4.3.5 / typescript 7.0.2 / vue-tsc 3.3.14。node v26.13.0 / npm 11.20.0。
 - **方案**：`01_方案/先查_主方案.docx` 69324 B（179 段 / 28 表），第五章已改写成前后端分离口径。
 - **未做**：`03_素材` 的访谈与真实合同收集（阳哥侧工作）；自定义域名未绑；全栈版没有公网部署（零预算，需一台常驻服务器）。
 - **凭据**：数据库口令在项目根 `application-local.yml`（已 gitignore），`application.yml` 只留 `${DB_PASSWORD:}` 占位。
+  Cloudflare OAuth token 约 24 小时过期，401 时重跑 `wrangler login --device`。
 - **git 环境**：`http.sslBackend=openssl`（schannel 会报 `SEC_E_NO_CREDENTIALS`）、`http.sslverify=false`、`proxy=127.0.0.1:31181`。
+

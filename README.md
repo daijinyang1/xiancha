@@ -10,9 +10,10 @@
 
 | 层 | 选型 | 说明 |
 |---|---|---|
-| 前端 | Nuxt 4.6.4 + Vue 3.5.45 + Pinia 4.1.0 | SPA 模式（`ssr: false`），纯客户端渲染 |
+| 前端 | Nuxt 4.6.4 + Vue 3.5.45 + Pinia 4.1.0 | 双形态：本地 `ssr:true` 连后端；线上 `npm run generate` 预渲染成 69 页静态 HTML |
 | 样式 | Tailwind CSS 4.3.5（`@tailwindcss/vite` 插件） | 不走 postcss，配色深蓝 #1F4E79 + 红 #C0392B |
-| 构建 | Vite（Nuxt 内置） | 无额外配置 |
+| TypeScript | 7.0.2 + vue-tsc 3.3.14 | 2026-11-11 升到 latest |
+| 构建 | Vite（Nuxt 内置）+ Nitro static preset | 预渲染 69 条路由，输出扁平 `xxx.html` |
 | 后端 | Spring Boot 3.3.13 + JDK 21 + Maven 3.9.9 | 端口 8080，包名 `com.xiancha` |
 | 数据库 | PostgreSQL 18.1 + Flyway | `127.0.0.1:5432`，库/用户/口令都是 `xiancha` |
 
@@ -35,7 +36,8 @@
     app/composables/useApi.ts   唯一后端访问层：6 个取数方法 + 2500ms 超时 + 降级兜底
     app/components/             页头、页脚、卡片、风险徽章、Toast、入口图标
     app/data/*.json             三份内置快照，只在后端不通时用
-  02_站点/                      第一版纯静态站（无后端），线上 pages.dev 跑的就是它；作为断网兜底保留，不再开发
+  02_站点/                      第一版纯静态站（无后端）。**2026-11-11 起线上不再跑它**，产物改由 web/ 预渲染；目录保留做断网兜底
+  _backup/旧版-静态站-20261109/  旧静态站物理备份（另打 tag v1-static-20261109），不进仓库
   01_方案/先查_主方案.docx       参赛主方案（69324 B ≈ 67.7 KB），**生成物**，改 tools/_cfg_all.json 后重渲染
   03_素材/                      同类站点调研、素材收集清单、访谈模板、软著材料清单
   tools/                        验收、部署、文档生成脚本
@@ -61,11 +63,13 @@ node tools\cdp_func.mjs
 python tools\build_docx.py tools\_cfg_all.json
 python tools\verify_docx.py
 
-:: —— 以下只针对 02_站点 静态版 ——
-cd 02_站点 && node check.js       :: 静态自检（83 文件 535900 字节）
-node tools\e2e.mjs                :: 静态版真机验收 26 项
-node tools\deploy.mjs             :: 手动直传（极少用，现在 push 即自动部署）
-node tools\live.mjs               :: 部署后线上验收
+:: —— 线上静态站（Nuxt 预渲染）——
+node tools\build-site.mjs .out     :: 一条命令：npm ci → nuxt generate → 暂存（Pages 构建命令就是它）
+node tools\_serve.mjs .out 4173    :: 本地按 Pages 口径预览 http://127.0.0.1:4173
+node tools\_probe_local.mjs 4173   :: 本地产物逐路由探测（状态码 / 字节 / 正文字数）
+node tools\_body.mjs xiancha.pages.dev   :: 线上逐路由看正文有没有真的进 HTML
+node tools\_head.mjs xiancha.pages.dev /scan   :: 只看状态码与关键响应头
+node tools\deploy.mjs              :: 手动直传（极少用，现在 push 即自动部署）
 ```
 
 - node：`C:/Users/21971/AppData/Local/nodejs/node.exe`（v26.13.0）
@@ -92,38 +96,67 @@ node tools\live.mjs               :: 部署后线上验收
 
 现场演示的三层兜底：本机全栈 → 只起前端（后端降级） → 线上静态版。
 
-## 部署静态版（02_站点）
+**线上静态版不显示这条黄条**：构建时 apiBase 是空串，`getJson` 直接抛 `OfflineError`，这个异常在 `markDegraded` 里被显式忽略——静态站本来就该只用随包数据，不该谎报「后端掉线」。改 `useApi.ts` 时别把这个特判删了。
 
-**现在 push 即部署：** `git push origin main` 后 Cloudflare Pages 自动克隆仓库、跑
-`node tools/stage-site.mjs .out`、把 `.out` 发布到 https://xiancha.pages.dev 。通常 40～60 秒上线。
+**`useAsyncData` 的坑（2026-11-11 踩过）**：handler 在 setup 返回之后才执行，那时调 `useRuntimeConfig()` / `useState()` 会抛 `NUXT_E1001`，"A composable that requires access to the Nuxt instance was called outside of a plugin, Nuxt hook, Nuxt middleware, or Vue setup function"。预渲染时这个异常被吞，页面永远停在「正在读取词条……」，HTML 里一个字都没有。
+解法：`useApi()` 在 setup 期就把 `base` 与 `status` 取到手，`getJson(base, path)` 显式收参，`markDegraded` 闭包引用 `status`。改这个文件时保持这个形状。
 
-```bat
-cd 02_站点 && node check.js   :: 先自检，必须「结果：无错误」
-git add -A && git commit -m "说明" && git push
-```
+## 部署线上静态站（Nuxt 预渲染 → Cloudflare Pages）
 
-手动直传（仅当想在 push 之前抢发，或 Git 构建出问题时用）：
+**push 即部署：** `git push origin main` 后 Pages 自动克隆仓库、跑
+`node tools/build-site.mjs .out`、把 `.out` 发布到 https://xiancha.pages.dev 。通常 40～90 秒上线。
 
 ```bat
-node tools\deploy.mjs          :: 暂存到 .stage/ → 直传 → 打印预览与生产地址
-node tools\live.mjs            :: 线上验收（真浏览器 + 截图）
+git add -A && git commit -m "说明" && git push     :: 推完就等自动构建，日志在 Cloudflare 控制台
 ```
 
-- Pages 项目名 `xiancha`，源 = GitHub `daijinyang1/xiancha` 的 `main` 分支，
-  构建命令 `node tools/stage-site.mjs .out`，输出目录 `.out`，根目录留空（仓库根）。
-- `tools/stage-site.mjs` 是两边的**唯一**暂存逻辑：排掉 `check.js`、`README.md`、
-  `*.bak*` `*.tmp` `*.orig` `*.log` `*.pyc` 与 `node_modules/__pycache__/_shots/.git`，产物 81 文件。
-  改排除规则只改这一个文件。
-- `tools/_cf.mjs` 是 Pages API 封装（需要时用）：`projects` / `project <名>` / `deployments <名>` /
-  `logs <名>` / `buildcfg <名> root_dir=.. destination_dir=.. build_command=..` / `deploy <名> [分支]` / `create` / `delete`。
+**构建链路（2026-11-11 更换）：**
+
+| 项 | 值 | 说明 |
+|---|---|---|
+| 构建命令 | `node tools/build-site.mjs .out` | 内部三件事：缺 `web/node_modules` 就 `npm ci` → 清 `web/.output` → `npx nuxt generate` → 暂存 |
+| 输出目录 | `.out` | 仓库根的暂存目录（已 gitignore） |
+| 根目录 | 空（仓库根） | 不要填 `web`，脚本自己在 `web/` 里执行 |
+
+产出口径：**163 个文件 / 69 条 sitemap URL**（6 个主页面 + 63 条词条 + 404 + robots + `_headers`）。
+
+**为什么必须分三步：** 旧构建命令是 `node tools/stage-site.mjs .out`，那只是把产物拷出来。
+换成 Nuxt 后 `.output/public` 得先 `generate` 才有，所以合成一个 `build-site.mjs`。
+
+**输出形态是扁平 `.html`**（`nitro.prerender.autoSubfolderIndex: false`）。
+默认的目录式输出会让 Pages 把 `/scan` **308 跳到** `/scan/`，凭空多一跳还带尾巴；
+扁平输出后 `/scan`、`/rules/R01` 直接 200。
+
+**404 兜底：** Nuxt 自带的 `404.html` 是 SPA 入口壳（约 1.1 KB、正文 0 字），无 JS 环境与爬虫看到白页。
+做法是 `web/app/pages/not-found.vue` 进预渲染列表，`stage-site.mjs` 拿 `not-found.html` 顶替 `404.html`
+（8099 B / 正文 410 字）。**不要用 `app/pages/404.vue`** —— Nuxt 不预渲染该路径，产物里只留个空 `_payload.json`。
+
+**本地预览与验收：**
+
+```bat
+node tools\build-site.mjs .out     :: 本地复刻线上产物
+node tools\_serve.mjs .out 4173    :: 按 Pages 口径伺服（目录→index.html→path.html、404 兜底）
+node tools\_probe_local.mjs 4173   :: 本地产物逐路由看状态码 / 字节 / 正文字数
+node tools\_body.mjs xiancha.pages.dev          :: 线上逐路由看正文有没有真的进 HTML
+node tools\_head.mjs xiancha.pages.dev /scan    :: 只看状态码与关键响应头（含 308 落点）
+node tools\deploy.mjs              :: 手动直传（抢发或 Git 构建故障时才用）
+```
+
+**其它须知：**
+
+- `tools/_cf.mjs` 是 Pages API 封装：`projects` / `project <名>` / `deployments <名>` /
+  `logs <名>` / `buildcfg <名> build_command=.. destination_dir=.. root_dir=..` / `deploy <名> [分支]` / `create` / `delete`。
   **传参必须用 `key=value`**，PowerShell 会把空字符串参数吞掉。
-- `tools/_probe.mjs` 探测线上：`node tools\_probe.mjs xiancha.pages.dev /,/scan,/rules/R01`。
-- 登录态在 `C:\Users\21971\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，过期就重跑
+- Cloudflare 登录态在 `C:\Users\21971\AppData\Roaming\xdg.config\.wrangler\config\default.toml`。
+  token 大约 24 小时就过期，症状是 API 一律 401 / `Invalid API Token`。续期：
   `node C:\Users\21971\.xiancha-deploy\node_modules\wrangler\wrangler-dist\cli.js login --device`
-  （别用 `bin/wrangler.js`，它会 spawn 子进程报 `spawn EPERM`）。
-- Pages 会把 `/xxx.html` **308 跳**到 `/xxx`，对外一律用干净地址；`_headers` 直接访问返回 404 属正常。
-- 注意：直传项目**不能**原地改成 Git 源项目（API 报 `8000069 You cannot update the source object in a Direct Uploads project`）。
-  2026-11-09 的做法是删掉旧直传项目、用同名重建为 Git 源，子域名不变；删除后同名可重建，已验证。
+  （别用 `bin/wrangler.js`，它 spawn 子进程会报 `spawn EPERM`）。浏览器里已有 Cloudflare 会话时会自动批准。
+- **`.env` 里绝对不能写 `NUXT_PUBLIC_API_BASE`**：`npm run generate` 同样会读 `.env`，
+  会把 `127.0.0.1:8080` 烙进静态产物，线上每页顶部挂一条「后端未连接」黄条。
+  `nuxt.config.ts` 已按 `NODE_ENV` 硬挡：只有 dev 才取 apiBase，静态构建恒为空串。
+- `web/public/_headers` 由 Nuxt 拷进产物：`/*` 设 nosniff / SAMEORIGIN / Referrer-Policy / Permissions-Policy；
+  `/*.html` 强校验；`/_nuxt/*` 缓存 7 天 immutable。直接访问 `/_headers` 返回 404 属正常。
+- Pages 会把 `/xxx.html` 308 跳到 `/xxx`，对外链接与 sitemap 一律写干净地址。
 
 ## 代码仓库（GitHub）
 
