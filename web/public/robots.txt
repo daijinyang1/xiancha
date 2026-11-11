@@ -1,0 +1,8 @@
+# 先查 · https://xiancha.pages.dev
+# 63 条规则词条是站点的主要内容资产，允许收录。
+User-agent: *
+Allow: /
+Disallow: /_nuxt/
+Disallow: /_payload.json
+
+Sitemap: https://xiancha.pages.dev/sitemap.xml

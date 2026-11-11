@@ -83,21 +83,15 @@ export function useApiStatus() {
   return useState<{ degraded: boolean; reason: string }>('api-status', () => ({ degraded: false, reason: '' }))
 }
 
-function markDegraded(reason: string) {
-  const s = useApiStatus()
-  if (!s.value.degraded) s.value = { degraded: true, reason }
-}
+/** 纯静态模式：没配 apiBase，就用随包数据，不算「后端掉线」 */
+class OfflineError extends Error {}
 
-function baseURL() {
-  const config = useRuntimeConfig()
-  return (config.public.apiBase || 'http://127.0.0.1:8080/api').replace(/\/+$/, '')
-}
-
-async function getJson<T>(path: string, timeoutMs = 2500): Promise<T> {
+async function getJson<T>(base: string, path: string, timeoutMs = 2500): Promise<T> {
+  if (!base) throw new OfflineError('static')
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
-    const res = await fetch(baseURL() + path, {
+    const res = await fetch(base + path, {
       signal: ctrl.signal,
       headers: { Accept: 'application/json' },
     })
@@ -187,6 +181,19 @@ function localScan(text: string): ScanResult {
 }
 
 export function useApi() {
+  // setup 期就把 Nuxt 上下文拿到手：useAsyncData 的 handler 在 setup 返回之后才执行，
+  // 那时再调 useRuntimeConfig() / useState() 会抛 NUXT_E1001，预渲染直接取不到数据。
+  const config = useRuntimeConfig()
+  const base = String(config.public.apiBase || '').replace(/\/+$/, '')
+  const status = useApiStatus()
+
+  function markDegraded(reason: unknown) {
+    if (reason instanceof OfflineError) return
+    if (!status.value.degraded) {
+      status.value = { degraded: true, reason: (reason as Error)?.message || String(reason) }
+    }
+  }
+
   /** GET /api/rules?type=&level=&q= */
   async function fetchRules(params: { type?: string; level?: string; q?: string } = {}) {
     try {
@@ -194,12 +201,12 @@ export function useApi() {
       if (params.type) qs.set('type', params.type)
       if (params.level) qs.set('level', params.level)
       if (params.q) qs.set('q', params.q)
-      const raw = await getJson<unknown>('/rules' + (qs.toString() ? '?' + qs : ''))
+      const raw = await getJson<unknown>(base, '/rules' + (qs.toString() ? '?' + qs : ''))
       const list = asList<Rule>(raw)
       if (!list.length && !params.q && !params.type && !params.level) throw new Error('空响应')
       return list
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       // 本地兜底：全量拉一次再按同样条件过滤，保证筛选行为一致
       return filterRules(RULES, params)
     }
@@ -208,11 +215,11 @@ export function useApi() {
   /** GET /api/rules/{id} */
   async function fetchRule(id: string) {
     try {
-      const raw = await getJson<Rule>('/rules/' + encodeURIComponent(id))
+      const raw = await getJson<Rule>(base, '/rules/' + encodeURIComponent(id))
       if (!raw || !raw.id) throw new Error('空响应')
       return raw
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       return RULES.find((r) => r.id === id) || null
     }
   }
@@ -220,12 +227,12 @@ export function useApi() {
   /** GET /api/traps?type= */
   async function fetchTraps(type?: string) {
     try {
-      const raw = await getJson<unknown>('/traps' + (type ? '?type=' + encodeURIComponent(type) : ''))
+      const raw = await getJson<unknown>(base, '/traps' + (type ? '?type=' + encodeURIComponent(type) : ''))
       const list = asList<Trap>(raw)
       if (!list.length && !type) throw new Error('空响应')
       return list
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       return type ? TRAPS.filter((t) => t.type === type) : TRAPS.slice()
     }
   }
@@ -233,12 +240,12 @@ export function useApi() {
   /** GET /api/certs */
   async function fetchCerts() {
     try {
-      const raw = await getJson<unknown>('/certs')
+      const raw = await getJson<unknown>(base, '/certs')
       const list = asList<Cert>(raw)
       if (!list.length) throw new Error('空响应')
       return list
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       return CERTS.slice()
     }
   }
@@ -246,11 +253,11 @@ export function useApi() {
   /** GET /api/stats */
   async function fetchStats() {
     try {
-      const raw = await getJson<Stats>('/stats')
+      const raw = await getJson<Stats>(base, '/stats')
       if (!raw || typeof raw.rules !== 'number') throw new Error('空响应')
       return raw
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       return localStats()
     }
   }
@@ -258,7 +265,8 @@ export function useApi() {
   /** POST /api/scan */
   async function scan(text: string) {
     try {
-      const res = await fetch(baseURL() + '/scan', {
+      if (!base) throw new OfflineError('static')
+      const res = await fetch(base + '/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ text }),
@@ -271,7 +279,7 @@ export function useApi() {
       if (!data || !Array.isArray(data.hits)) throw new Error('响应结构不符')
       return data
     } catch (e) {
-      markDegraded((e as Error).message)
+      markDegraded(e)
       return localScan(text)
     }
   }

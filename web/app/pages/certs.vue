@@ -19,10 +19,10 @@ const all = ref<Cert[]>([])
 const loading = ref(true)
 const level = ref('')
 
-onMounted(async () => {
-  all.value = await fetchCerts()
-  loading.value = false
-})
+// 构建期取数：npm run generate 时把证书数据写进 HTML；线上静态站不再请求后端
+const { data: certsData } = await useAsyncData('xc-certs-page', () => fetchCerts())
+all.value = certsData.value || []
+loading.value = false
 
 const filtered = computed(() => all.value.filter((c) => !level.value || c.level === level.value))
 

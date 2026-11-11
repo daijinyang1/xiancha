@@ -15,10 +15,11 @@ useHead({
 
 const stats = ref({ rules: 63, traps: 12, certs: 6 })
 
-onMounted(async () => {
-  const s = await fetchStats()
-  stats.value = { rules: s.rules, traps: s.traps, certs: s.certs }
-})
+// 构建期（npm run generate）在服务端就把统计数写进 HTML，纯静态站不需要后端
+const { data: statsData } = await useAsyncData('xc-stats', () => fetchStats())
+if (statsData.value) {
+  stats.value = { rules: statsData.value.rules, traps: statsData.value.traps, certs: statsData.value.certs }
+}
 
 const keyword = ref('')
 const samples = ['押金', '违约金', '试用期', '社保', '加班费', '竞业']

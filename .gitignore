@@ -37,3 +37,6 @@ desktop.ini
 *.key
 *.pem
 application-local.yml
+
+# 旧版静态站物理备份（与 tag v1-static-20261109 双保险，不进仓库）
+_backup/

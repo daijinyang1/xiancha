@@ -25,12 +25,14 @@ const q = ref('')
 const type = ref(String(route.query.type || ''))
 const openIds = ref<string[]>([])
 
-onMounted(async () => {
+// 构建期取数：npm run generate 时把案例与规则写进 HTML；线上静态站不再请求后端
+const { data: loaded } = await useAsyncData('xc-traps-page', async () => {
   const [list, rs] = await Promise.all([fetchTraps(), fetchRules()])
-  all.value = list
-  rules.value = rs
-  loading.value = false
+  return { list, rs }
 })
+all.value = loaded.value?.list || []
+rules.value = loaded.value?.rs || []
+loading.value = false
 
 watch(type, (v) => {
   router.replace({ query: { ...route.query, type: v || undefined } })

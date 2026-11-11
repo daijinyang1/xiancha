@@ -13,9 +13,9 @@ const WRANGLER = 'C:\\Users\\21971\\.xiancha-deploy\\node_modules\\wrangler\\bin
 const ACCOUNT = '24c86e80a1c0e1459c679cd3ae0508ea';
 const PROJECT = 'xiancha';
 
-// 1. stage：拷一份干净的 public
-const n = stageSite(STAGE);
-console.log('stage: ' + n + ' 个文件');
+// 1. stage：把 web/.output/public 拷成可上线的干净目录（先跑过 npm run generate）
+const r = stageSite(STAGE);
+console.log('stage: ' + r.files + ' 个文件 / sitemap ' + r.urls + ' 条');
 
 // 2. 部署
 const args = [WRANGLER, 'pages', 'deploy', '.stage', '--project-name=' + PROJECT,

@@ -32,7 +32,18 @@ async function load() {
   loading.value = false
 }
 
-onMounted(load)
+// 构建期取数：npm run generate 会为每条规则单独预渲染一页，数据直接写进 HTML
+const { data: loaded } = await useAsyncData('xc-rule-' + id.value, async () => {
+  const [r, rs, ts] = await Promise.all([fetchRule(id.value), fetchRules(), fetchTraps()])
+  return { r, rs, ts }
+})
+if (loaded.value) {
+  rule.value = loaded.value.r
+  rules.value = loaded.value.rs
+  traps.value = loaded.value.ts
+  loading.value = false
+}
+
 watch(id, load)
 
 useHead({

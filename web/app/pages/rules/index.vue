@@ -24,13 +24,10 @@ const q = ref(String(route.query.q || ''))
 const type = ref(String(route.query.type || ''))
 const level = ref(String(route.query.level || ''))
 
-async function load() {
-  loading.value = true
-  all.value = await fetchRules()
-  loading.value = false
-}
-
-onMounted(load)
+// 构建期取数：npm run generate 时把 63 条规则写进 HTML；搬到线上后不再请求后端
+const { data: rulesData } = await useAsyncData('xc-rules-all', () => fetchRules())
+all.value = rulesData.value || []
+loading.value = false
 
 watch(q, (v) => {
   router.replace({ query: { ...route.query, q: v || undefined } })
