@@ -11,7 +11,7 @@ const ruleIdList: string[] = JSON.parse(
   fs.readFileSync(fileURLToPath(new URL('./app/data/rules.json', import.meta.url)), 'utf8'),
 ).map((r: { id: string }) => r.id)
 
-const PRE_RENDER_ROUTES = [
+const PRE_RENDER_ROUTES = ['/not-found',
   '/',
   '/scan',
   '/traps',

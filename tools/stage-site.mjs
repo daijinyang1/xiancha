@@ -57,6 +57,13 @@ export function stageSite(outDir = OUT) {
   }
   fs.rmSync(outDir, { recursive: true, force: true });
   copyTree(BUILT, outDir);
+  // Nuxt 自带的 404.html 是 SPA 入口壳（约 1.1 KB、正文 0 字），无 JS 环境与爬虫看到白页。
+  // 预渲染的 /not-found 才是有正文的那一版，用它顶替 404.html，Pages 的兜底才给得出内容。
+  const pretty = path.join(outDir, 'not-found.html')
+  if (fs.existsSync(pretty)) {
+    fs.copyFileSync(pretty, path.join(outDir, '404.html'))
+    fs.rmSync(pretty)
+  }
   const urlCount = writeSitemap(outDir);
   return { files: countFiles(outDir), urls: urlCount };
 }
