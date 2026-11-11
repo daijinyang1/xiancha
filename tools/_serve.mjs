@@ -42,7 +42,13 @@ http
       res.writeHead(403);
       return res.end('forbidden');
     }
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+    // 对齐 Pages 的解析顺序：精确文件 → 目录里的 index.html → path + .html
+    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
+      const idx = path.join(file, 'index.html');
+      if (fs.existsSync(idx)) file = idx;
+      else if (fs.existsSync(file + '.html')) file = file + '.html';
+    }
+    if (!fs.existsSync(file) && fs.existsSync(file + '.html')) file = file + '.html';
     if (fs.existsSync(file)) return send(res, 200, file);
     const notFound = path.join(DIR, '404.html');
     if (fs.existsSync(notFound)) return send(res, 404, notFound);

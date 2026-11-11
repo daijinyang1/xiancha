@@ -32,6 +32,9 @@ if (!fs.existsSync(path.join(WEB, 'node_modules', 'nuxt'))) {
 }
 
 // 2) 预渲染 69 条路由（6 个主页面 + 63 条词条）
+//    必须先删 .output：nuxt generate 不清旧产物，改了输出形态（目录式 ↔ 扁平 .html）后
+//    新旧文件会同时留下，线上出现 /scan 与 /scan/ 两份重复内容。
+fs.rmSync(path.join(WEB, '.output'), { recursive: true, force: true })
 run('npx', ['nuxt', 'generate'], WEB)
 
 // 3) 暂存：产物 + sitemap.xml（robots.txt / _headers 由 web/public 带进产物）

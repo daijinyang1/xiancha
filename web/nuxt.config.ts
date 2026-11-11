@@ -43,6 +43,9 @@ export default defineNuxtConfig({
       crawlLinks: false,
       failOnError: true,
       routes: PRE_RENDER_ROUTES,
+      // 默认会输出 scan/index.html，Cloudflare Pages 就会把 /scan 308 跳到 /scan/，
+      // 对外链接凭空多一跳、还多出结尾斜杠。改成 scan.html 扁平输出，Pages 对 /scan 直接 200。
+      autoSubfolderIndex: false,
     },
   },
   runtimeConfig: {
