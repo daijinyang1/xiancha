@@ -18,6 +18,8 @@ const PRE_RENDER_ROUTES = ['/not-found',
   '/rules',
   '/certs',
   '/about',
+  '/history',
+  '/stats',
   ...ruleIdList.map((id) => '/rules/' + id),
 ]
 

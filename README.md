@@ -17,7 +17,7 @@
 | 后端 | Spring Boot 3.3.13 + JDK 21 + Maven 3.9.9 | 端口 8080，包名 `com.xiancha` |
 | 数据库 | PostgreSQL 18.1 + Flyway | `127.0.0.1:5432`，库/用户/口令都是 `xiancha` |
 
-**数据只有一条线：** `db/*.json` 是唯一真源 → 数据库三张表是它的投影（Flyway `V2__seed.sql` 灌入）→ `web/app/data/*.json` 是前端兜底用的拷贝。三处数字必须一致：**63 条规则 / 12 条案例 / 6 个证书 / 8 类坑型**。
+**数据只有一条线（2026-11-12 起重构）：** **PostgreSQL 库 `xiancha` 是唯一真源**（表 `rule` / `trap` / `cert`）→ `node tools/db-export.mjs` 在构建第 0 步把它导成 `web/app/data/*.json` 快照 → Nuxt 预渲染把快照内联进静态 HTML。**不再有手写的 `db/*.json`**（已删除，见 `db/README.md`）。四个数字必须一致：**63 条规则 / 12 条案例 / 6 个证书 / 8 类坑型**。
 
 ## 目录结构
 
@@ -26,16 +26,16 @@
   启动.bat                      一键起：PostgreSQL → 后端 :8080 → 前端 :3000 → 自动开浏览器
   停止.bat                      按端口杀 8080 与 3000（不动 PostgreSQL 系统服务）
   API契约.md                    前后端唯一契约：7 个接口的路径、入参、返回结构
-  db/                           三份 json 真源（rules 63 / traps 12 / certs 6）+ 字段说明
+  db/                           数据真源说明（数据本身在 PostgreSQL，这里只有 README）
   server/                       Spring Boot 后端
-    src/main/java/com/xiancha/  controller 5 / service 6 / entity 4 / repository 4 / dto 6
+    src/main/java/com/xiancha/  controller / service / entity / repository / dto
     src/main/resources/db/migration/   V1__schema.sql 建表、V2__seed.sql 灌数据
     target/xiancha-server-1.0.0.jar    打好包的可执行 jar
   web/                          Nuxt 前端
-    app/pages/                  7 个路由：/ /scan /rules /rules/[id] /traps /certs /about
-    app/composables/useApi.ts   唯一后端访问层：6 个取数方法 + 2500ms 超时 + 降级兜底
-    app/components/             页头、页脚、卡片、风险徽章、Toast、入口图标
-    app/data/*.json             三份内置快照，只在后端不通时用
+    app/pages/                  9 个页面：/ /scan /rules /rules/[id] /traps /certs /about /history /stats
+    app/composables/useApi.ts   唯一后端访问层：9 个取数方法 + 2500ms 超时 + 降级兜底
+    app/components/             页头、页脚、卡片、徽章、Toast、图标、Reveal/CountUp/ProgressRing 动效件
+    app/data/*.json             构建期快照，由 tools/db-export.mjs 从数据库导出，**不要手改**
   02_站点/                      第一版纯静态站（无后端）。**2026-11-11 起线上不再跑它**，产物改由 web/ 预渲染；目录保留做断网兜底
   _backup/旧版-静态站-20261109/  旧静态站物理备份（另打 tag v1-static-20261109），不进仓库
   01_方案/先查_主方案.docx       参赛主方案（69324 B ≈ 67.7 KB），**生成物**，改 tools/_cfg_all.json 后重渲染
@@ -76,17 +76,23 @@ node tools\deploy.mjs              :: 手动直传（极少用，现在 push 即
 - python：`C:/Users/21971/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe`（3.12，有 python-docx / openpyxl / Pillow）；系统 python 是 WindowsApps 占位符，不可用。
 - maven：`D:\App\maven\bin\mvn.cmd`（本地仓库 `D:\App\maven-repo`）；JDK 21 在 `D:\App\jdk21`。
 
-## 改了数据之后（三处同步）
+## 改了数据之后（只有一条路径）
 
-1. 改 `db/rules.json`（或 traps / certs）。
-2. 在 `server/src/main/resources/db/migration/` 下**新建**一个 `V3__xxx.sql` 写增量（改哪行就 `UPDATE rule SET ... WHERE id = 'R01';`）。**不要改已经跑过的 V1/V2** —— Flyway 记了校验和，改了会启动失败。
-3. 拷一份到 `web/app/data/`（前端兜底用），三处数字对一遍。
-4. 重启后端，Flyway 自动执行 V3；启动日志里会打印 `Migrating schema "public" to version "3 - xxx"`。
-5. `node tools\smoke.mjs` 44 项全过。
+**数据真源是 PostgreSQL，不是文件。**
+
+1. 连库改数据：`PGPASSWORD=xiancha2026 D:/App/PostgreSQL/bin/psql.exe -h 127.0.0.1 -U xiancha -d xiancha`
+   改 `rule` / `trap` / `cert` 表。
+2. 如果要让改动**可复现**（换台机器也能建出同样的库），在 `server/src/main/resources/db/migration/` 下**新建** `V3__xxx.sql` 写增量（`UPDATE rule SET ... WHERE id = 'R01';`）。**不要改已经跑过的 V1/V2** —— Flyway 记了校验和，改了会启动失败。
+3. `node tools/db-export.mjs` 把库导出成 `web/app/data/*.json`（构建期快照）。**不导就等于没改**，线上构建用的还是旧快照。
+4. `node tools/db-export.mjs --check` 确认快照与库一致（退出码 0）。
+5. `node tools/verify-stack.mjs` 全栈自检（数据库 → 后端接口 → 落库 → 前后端字段对齐）。
+6. 提交推送，Pages 自动重新构建。
+
+> `web/app/data/*.json` 是**生成物**，手改会在下次 `db-export` 被覆盖。
 
 ## 改了前端之后
 
-`npm run dev` 会热更新，不用重启。改完跑 `node tools\cdp_web.mjs` 看七个路由有没有报错、`node tools\cdp_func.mjs` 看交互没坏。
+`npm run dev` 会热更新，不用重启。改完跑 `node tools\cdp_web.mjs` 看九个页面有没有报错、`node tools\cdp_func.mjs` 看交互没坏。
 
 **注意：** `nuxt dev` 默认只监听 `::1`（IPv6 回环），用 `http://127.0.0.1:3000` 打开会报「服务器不可用」。`web/package.json` 的 dev 脚本里已经写死 `--host 127.0.0.1`，别改回去。
 
@@ -110,15 +116,19 @@ node tools\deploy.mjs              :: 手动直传（极少用，现在 push 即
 git add -A && git commit -m "说明" && git push     :: 推完就等自动构建，日志在 Cloudflare 控制台
 ```
 
-**构建链路（2026-11-11 更换）：**
+**构建链路：**
 
 | 项 | 值 | 说明 |
 |---|---|---|
-| 构建命令 | `node tools/build-site.mjs .out` | 内部三件事：缺 `web/node_modules` 就 `npm ci` → 清 `web/.output` → `npx nuxt generate` → 暂存 |
+| 构建命令 | `node tools/build-site.mjs .out` | 内部四件事：`node tools/db-export.mjs` 从 PostgreSQL 导快照 → 缺 `web/node_modules` 就 `npm ci` → 清 `web/.output` → `npx nuxt generate` → 暂存 |
 | 输出目录 | `.out` | 仓库根的暂存目录（已 gitignore） |
 | 根目录 | 空（仓库根） | 不要填 `web`，脚本自己在 `web/` 里执行 |
 
-产出口径：**163 个文件 / 69 条 sitemap URL**（6 个主页面 + 63 条词条 + 404 + robots + `_headers`）。
+产出口径：**167 个文件 / 71 条 sitemap URL**（9 个页面 + 63 条词条 + 404 + robots + `_headers`）。
+
+**数据从哪来：** 第 0 步 `db-export.mjs` 连 PostgreSQL 导快照。Cloudflare 构建机没有 Postgres，
+它用的是仓库里已提交的快照（脚本检测到没有 psql 时自动走这条路）。所以**本地改完数据必须先
+`node tools/db-export.mjs` 再提交**，否则线上还是旧数据。
 
 **为什么必须分三步：** 旧构建命令是 `node tools/stage-site.mjs .out`，那只是把产物拷出来。
 换成 Nuxt 后 `.output/public` 得先 `generate` 才有，所以合成一个 `build-site.mjs`。

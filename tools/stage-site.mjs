@@ -12,7 +12,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BUILT = path.join(ROOT, 'web', '.output', 'public');
-const RULES = path.join(ROOT, 'db', 'rules.json');
+// 数据真源在 PostgreSQL；构建时先由 tools/db-export.mjs 导出到 web/app/data/，
+// sitemap 与页面用的是同一份快照，不再去读 db/*.json（那是历史遗留的手工副本）。
+const RULES = path.join(ROOT, 'web', 'app', 'data', 'rules.json');
 const ORIGIN = 'https://xiancha.pages.dev';
 const OUT = path.resolve(ROOT, process.argv[2] || '.stage');
 
@@ -37,10 +39,13 @@ function countFiles(dir) {
   );
 }
 
-/** 由 db/rules.json 生成 sitemap：6 个主页面 + 每条规则一个干净地址 */
+/** 由库快照生成 sitemap：主页面 + 每条规则一个干净地址 */
 export function writeSitemap(dir) {
   const rules = JSON.parse(fs.readFileSync(RULES, 'utf8'));
-  const paths = ['/', '/scan', '/traps', '/rules', '/certs', '/about', ...rules.map((r) => '/rules/' + r.id)];
+  const paths = [
+    '/', '/scan', '/traps', '/rules', '/certs', '/about', '/history', '/stats',
+    ...rules.map((r) => '/rules/' + r.id),
+  ];
   const body = paths.map((p) => '  <url><loc>' + ORIGIN + p + '</loc></url>').join('\n');
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +

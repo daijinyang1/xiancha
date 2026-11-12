@@ -23,14 +23,17 @@
 | 路径 | 是什么 |
 |---|---|
 | `启动.bat` / `停止.bat` | 一键起停：PostgreSQL → 后端 :8080 → 前端 :3000 → 自动开浏览器 |
-| `API契约.md` | 前后端**唯一契约**：7 个接口的路径、入参、返回结构。改接口先改这里 |
-| `db/rules.json` `traps.json` `certs.json` | **数据唯一真源**（63 / 12 / 6） |
+| `API契约.md` | 前后端**唯一契约**：10 个接口的路径、入参、返回结构。改接口先改这里 |
+| `db/README.md` | 数据真源说明。**数据本身在 PostgreSQL**，本目录不再放 JSON 副本 |
 | `server/` | Spring Boot 后端；`src/main/java/com/xiancha/{controller,service,entity,repository,dto}` |
 | `server/src/main/resources/db/migration/` | `V1__schema.sql` 建表、`V2__seed.sql` 灌数据 |
 | `server/src/main/java/com/xiancha/service/ScanService.java` | 扫描引擎：切句 → 正则匹配 → 同句合并 → 打分排序 → 落扫描日志 |
-| `web/app/pages/` | 7 个路由：`/` `/scan` `/rules` `/rules/[id]` `/traps` `/certs` `/about` |
-| `web/app/composables/useApi.ts` | 唯一后端访问层：6 个取数方法 + 2500ms 超时 + 降级兜底 |
-| `web/app/data/*.json` | 三份内置快照，**只在后端不通时用**，数字必须与 `db/` 一致 |
+| `web/app/pages/` | 9 个页面：`/` `/scan` `/rules` `/rules/[id]` `/traps` `/certs` `/about` `/history` `/stats` |
+| `web/app/composables/useApi.ts` | 唯一后端访问层：9 个取数方法 + 2500ms 超时 + 降级兜底 |
+| `web/app/components/` | 页头/页脚/卡片/徽章/Toast/图标 + `Reveal`（滚动入场）`CountUp`（数字滚动）`ProgressRing`（环形进度） |
+| `web/app/data/*.json` | **构建期快照**，由 `tools/db-export.mjs` 从数据库导出，**不许手改** |
+| `tools/db-export.mjs` | 库 → 快照导出（构建第 0 步）；`--check` 比对库与快照是否一致 |
+| `tools/verify-stack.mjs` | 全栈自检：数据库 → 后端接口 → 扫描落库 → 前后端字段对齐 |
 | `02_站点/` | 第一版纯静态站（无后端），线上 https://xiancha.pages.dev 跑的就是它；**不再开发**，只作断网兜底 |
 | `01_方案/先查_主方案.docx` | 参赛主方案，**生成物**，改 `tools/_cfg_all.json` 后重渲染 |
 | `03_素材/` | 同类站点调研、素材清单、访谈模板、软著清单 |
@@ -51,7 +54,7 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 - maven：`D:\App\maven\bin\mvn.cmd`，本地仓库 `D:\App\maven-repo`；JDK 21 在 `D:\App\jdk21`。
 
 ## 5. 改东西的规矩
-1. **改数据只改 `db/*.json`**，然后新建一个 `V3__xxx.sql` 写增量灌库（**不要改已跑过的 V1/V2**，Flyway 有校验和，改了启动必失败），再把 json 拷一份到 `web/app/data/`。三处数字对不上就是 bug。
+1. **改数据只改数据库**：连 PostgreSQL 改 `rule`/`trap`/`cert` 表 → `node tools/db-export.mjs` 导快照 → `node tools/db-export.mjs --check` 验一致。要让改动可复现就新建 `V3__xxx.sql` 写增量（**不要改已跑过的 V1/V2**，Flyway 有校验和，改了启动必失败）。**没有 `db/*.json` 了，别再找。**
 2. **方案 docx 是生成物**：改 `tools/_cfg_all.json`（或 `_cfg1/2/3.json` 后按序拼回），再 `python tools/build_docx.py tools/_cfg_all.json`。禁止手工改 docx 正文。
    拼接关系：`_cfg_all.blocks = _cfg1.blocks(48) + _cfg2(59) + _cfg3(69) = 176`，`_cfg2/_cfg3` 是纯数组，无外壳。
 3. **页面只通过 `useApi.ts` 取数**，不许在页面里直接 import `app/data/*.json`（那是兜底专用的）。

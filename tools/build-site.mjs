@@ -23,6 +23,11 @@ function run(cmd, args, cwd) {
   }
 }
 
+// 0) 数据：库里是真源，先把它导成 web/app/data/*.json 再交给 Nuxt 预渲染。
+//    这样线上 HTML 里内联的每一条规则/案例/证书都来自 PostgreSQL，不是手改的 JSON。
+//    库里连不上就立刻失败，不允许拿旧快照糊过去。
+run(process.execPath, ['tools/db-export.mjs'], ROOT)
+
 // 1) 依赖：没有 node_modules 就装（Pages 构建环境每次都是干净的，这一步必跑）
 if (!fs.existsSync(path.join(WEB, 'node_modules', 'nuxt'))) {
   const hasLock = fs.existsSync(path.join(WEB, 'package-lock.json'))

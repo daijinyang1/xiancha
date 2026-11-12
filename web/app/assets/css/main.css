@@ -107,8 +107,146 @@ mark.hit.lv-低 {
   border-bottom-color: var(--color-brand-2);
 }
 
+/* ===========================================================
+   全站动效层（纯 CSS，无第三方依赖）
+   用法：Reveal.vue 挂 .reveal，进入视口加 .is-in；
+        其余关键帧供首页/功能页按类名直接用。
+   =========================================================== */
+
+/* 滚动入场：静态产物里默认不可见，JS 起来后由 IntersectionObserver 点亮 */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.62s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes xc-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes xc-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes xc-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes xc-dash {
+  from { stroke-dashoffset: var(--dash-from, 999); }
+  to { stroke-dashoffset: var(--dash-to, 0); }
+}
+
+@keyframes xc-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31, 78, 121, 0.28); }
+  70% { box-shadow: 0 0 0 7px rgba(31, 78, 121, 0); }
+}
+
+.anim-fade-up { animation: xc-fade-up 0.62s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.anim-float { animation: xc-float 5.5s ease-in-out infinite; }
+.anim-shimmer {
+  background-image: linear-gradient(100deg, rgba(31, 78, 121, 0) 20%, rgba(31, 78, 121, 0.08) 50%, rgba(31, 78, 121, 0) 80%);
+  background-size: 200% 100%;
+  animation: xc-shimmer 2.6s linear infinite;
+}
+.anim-pulse-dot { animation: xc-pulse-dot 2.4s ease-out infinite; }
+
+/* 首页 Hero 极轻的网格纹理 + 径向光晕（纯 CSS，无图片） */
+.hero-surface {
+  background-color: #fff;
+  background-image:
+    radial-gradient(760px 320px at 12% -8%, rgba(46, 109, 164, 0.10), transparent 62%),
+    radial-gradient(560px 260px at 92% 0%, rgba(31, 78, 121, 0.07), transparent 58%),
+    linear-gradient(to right, rgba(225, 231, 239, 0.55) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(225, 231, 239, 0.55) 1px, transparent 1px);
+  background-size: auto, auto, 32px 32px, 32px 32px;
+}
+
+/* 入口卡：hover 上浮 + 图标微旋转 + 边框高亮 */
+.entry-card {
+  transition:
+    transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.32s ease,
+    border-color 0.32s ease;
+}
+.entry-card:hover { transform: translateY(-4px); }
+.entry-card .entry-glyph {
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.entry-card:hover .entry-glyph { transform: translateY(-1px) rotate(-8deg) scale(1.08); }
+
+/* 时间线：连接线用渐变，节点逐个点亮 */
+.timeline-rail {
+  background: linear-gradient(to bottom, var(--color-brand-2), rgba(46, 109, 164, 0.16));
+}
+
+/* Header 滚动后更实的底 + 阴影 */
+header .header-shell {
+  transition: box-shadow 0.28s ease, background-color 0.28s ease;
+}
+header.is-scrolled .header-shell {
+  background-color: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 1px 0 rgba(225, 231, 239, 1), 0 8px 20px -14px rgba(28, 37, 48, 0.35);
+}
+
+/* 导航下划线滑动指示（位置由 Header.vue 的 onMounted 量出来，SSR 期隐藏） */
+.nav-underline {
+  transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), width 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.2s ease;
+}
+
+/* 骨架/占位闪烁（空态用） */
+.skeleton-line {
+  background: linear-gradient(90deg, #EEF2F7 25%, #F7FAFD 37%, #EEF2F7 63%);
+  background-size: 200% 100%;
+  animation: xc-shimmer 1.6s linear infinite;
+}
+
+/* 没有脚本时（爬虫除外）直接显示内容，避免入场动画把人挡在门外 */
+@media (scripting: none) {
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* 尊重系统「减少动态效果」 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal,
+  .reveal.is-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .anim-fade-up,
+  .anim-float,
+  .anim-shimmer,
+  .anim-pulse-dot,
+  .skeleton-line {
+    animation: none !important;
+  }
+  .entry-card,
+  .entry-card:hover,
+  .entry-card .entry-glyph,
+  .entry-card:hover .entry-glyph,
+  .nav-underline {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 /* 打印时隐藏交互壳 */
 @media print {
   header, footer, .no-print { display: none !important; }
   body { background: #fff; }
+  .reveal { opacity: 1 !important; transform: none !important; }
 }

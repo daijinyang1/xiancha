@@ -7,7 +7,7 @@
 | 层 | 选型 | 版本 |
 |---|---|---|
 | 前端框架 | Vue | 3.5.45 |
-| 建站框架 | Nuxt | 4.6.4（SPA 模式 + 可选 SSR 预渲染） |
+| 建站框架 | Nuxt | 4.6.4（SSR + 静态预渲染，`nitro.preset='static'`） |
 | 状态 | Pinia | 4.1.0 |
 | 样式 | Tailwind CSS | 4.3.5（`@tailwindcss/vite` 插件，不用 postcss） |
 | 构建 | Vite（Nuxt 内置） | — |
@@ -21,8 +21,16 @@
 先查项目/
   web/      Nuxt 前端（端口 3000）
   server/   Spring Boot 后端（端口 8080）
-  db/       数据导出源（rules.json / traps.json / certs.json），供 Flyway 种子导入
+  db/       只有 README.md —— 数据真源是 PostgreSQL，本目录不再放 JSON
 ```
+
+## 数据真源
+
+**PostgreSQL 库 `xiancha` 是唯一真源。** 前端不存数据副本，构建期由
+`tools/db-export.mjs` 从库里导出 `web/app/data/*.json` 快照供预渲染内联；
+运行时（本机全栈）直接打后端 API 读库。
+
+改数据的正确路径：连库改 → `node tools/db-export.mjs` → `--check` 验一致 → 提交推送。
 
 ## 数据模型
 
@@ -60,7 +68,37 @@ id bigserial / created_at / text_hash / sentence_hits / rule_hits / score / ip_h
 | GET | /api/traps/{id} | 单案例，含同坑型规则链 |
 | GET | /api/certs | 考证列表 |
 | GET | /api/stats | { rules, traps, certs, byType, byLevel } |
-| POST | /api/scan | { text } → 扫描结果（服务端正则匹配） |
+| POST | /api/scan | { text } → 扫描结果（服务端正则匹配），**同时落 scan_log** |
+| GET | /api/scan/history?limit=20 | 最近扫描记录（created_at DESC） |
+| GET | /api/scan/stats | 扫描量汇总 + 近 7 天走势 |
+| GET | /api/health | 服务与数据库探活 |
+
+### GET /api/health 返回
+```json
+{ "status": "ok", "db": true, "rules": 63, "traps": 12, "certs": 6, "uptimeSec": 128, "version": "1.0.0" }
+```
+
+### GET /api/scan/history 返回
+```json
+[
+  { "id": 21, "createdAt": "2026-11-12T12:31:02Z", "sentenceHits": 9, "ruleHits": 12, "score": 100, "level": "高" }
+]
+```
+只含计数与分数，**不含原文**（`scan_log` 只存 `text_hash`）。
+
+### GET /api/scan/stats 返回
+```json
+{
+  "total": 21, "today": 5, "avgScore": 78,
+  "highCount": 11, "midCount": 8, "lowCount": 2,
+  "last7Days": [
+    { "date": "2026-11-06", "count": 0, "avgScore": 0 },
+    { "date": "2026-11-12", "count": 5, "avgScore": 82 }
+  ]
+}
+```
+`last7Days` 由 SQL `generate_series` 补齐 7 天（含 0 次的那天），前端不用自己补零。
+分档口径与前端一致：`score >= 40` 高 / `score >= 15` 中 / 其余低。
 
 ### POST /api/scan 返回
 ```json
@@ -86,13 +124,18 @@ id bigserial / created_at / text_hash / sentence_hits / rule_hits / score / ip_h
 
 | 路径 | 页面 |
 |---|---|
-| / | 首页（搜索框 + 四张入口卡 + KPI + 三层结构） |
+| / | 首页（品牌头 + 搜索框 + 入口卡 + KPI + 三层结构） |
 | /scan | 合同扫描 |
 | /rules | 规则词条列表（筛选） |
 | /rules/[id] | 词条详情 |
 | /traps | 避坑案例库 |
 | /certs | 考证日历 |
+| /history | 扫描历史（读 scan_log） |
+| /stats | 数据总览（扫描量 + 坑型分布 + 风险分档） |
 | /about | 关于 |
+| /not-found | 404 兜底（构建时顶替 404.html） |
+
+**导航层级：首页是入口，所有功能页都能从首页一屏点进去；页头常驻 6 项主导航。**
 
 ## 环境变量
 

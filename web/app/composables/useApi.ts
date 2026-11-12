@@ -74,6 +74,45 @@ export interface Stats {
   byLevel: Record<string, number>
 }
 
+/** GET /api/health —— 后端活着吗、连库了吗、三个库各多少条 */
+export interface Health {
+  status: string
+  db: boolean
+  rules: number
+  traps: number
+  certs: number
+  uptimeSec: number
+  version: string
+}
+
+/** GET /api/scan/history 的一条记录。local=true 表示只存在本机浏览器里 */
+export interface ScanRecord {
+  id: string
+  createdAt: string
+  sentenceHits: number
+  ruleHits: number
+  score: number
+  level: string
+  local?: boolean
+}
+
+export interface ScanDayPoint {
+  date: string
+  count: number
+  avgScore: number
+}
+
+/** GET /api/scan/stats */
+export interface ScanStats {
+  total: number
+  today: number
+  avgScore: number
+  highCount: number
+  midCount: number
+  lowCount: number
+  last7Days: ScanDayPoint[]
+}
+
 const RULES = rulesSeed as unknown as Rule[]
 const TRAPS = trapsSeed as unknown as Trap[]
 const CERTS = certsSeed as unknown as Cert[]
@@ -284,7 +323,116 @@ export function useApi() {
     }
   }
 
-  return { fetchRules, fetchRule, fetchTraps, fetchCerts, fetchStats, scan, localScan }
+  /** GET /api/health —— 静态模式下没有后端，回落到随包快照的数字（不抛错、不点亮黄条） */
+  async function fetchHealth(): Promise<Health> {
+    try {
+      const raw = await getJson<Health>(base, '/health')
+      if (!raw || typeof raw.rules !== 'number') throw new Error('空响应')
+      return raw
+    } catch (e) {
+      markDegraded(e)
+      return {
+        status: base ? 'down' : 'static',
+        db: false,
+        rules: RULES.length,
+        traps: TRAPS.length,
+        certs: CERTS.length,
+        uptimeSec: 0,
+        version: 'static',
+      }
+    }
+  }
+
+  /**
+   * GET /api/scan/history —— 返回后端记录（只含服务器侧的）。
+   * 线上是静态站，浏览器里的扫描结果写不进服务器数据库，
+   * 所以本机记录另存在 localStorage（见 readLocalHistory），由页面做双源合并。
+   */
+  async function fetchScanHistory(limit = 20): Promise<ScanRecord[]> {
+    try {
+      if (!base) throw new OfflineError('static')
+      const raw = await getJson<unknown>(base, '/scan/history?limit=' + encodeURIComponent(String(limit)))
+      const list = asList<ScanRecord>(raw)
+      return list.map((r) => ({ ...r, local: false }))
+    } catch (e) {
+      markDegraded(e)
+      return []
+    }
+  }
+
+  /** GET /api/scan/stats —— 离线时返回全零结构，页面自己再叠本地记录 */
+  async function fetchScanStats(): Promise<ScanStats> {
+    try {
+      const raw = await getJson<ScanStats>(base, '/scan/stats')
+      if (!raw || typeof raw.total !== 'number') throw new Error('空响应')
+      return {
+        total: raw.total,
+        today: raw.today,
+        avgScore: raw.avgScore,
+        highCount: raw.highCount,
+        midCount: raw.midCount,
+        lowCount: raw.lowCount,
+        last7Days: Array.isArray(raw.last7Days) ? raw.last7Days : [],
+      }
+    } catch (e) {
+      markDegraded(e)
+      return emptyScanStats()
+    }
+  }
+
+  return { fetchRules, fetchRule, fetchTraps, fetchCerts, fetchStats, fetchHealth, fetchScanHistory, fetchScanStats, scan, localScan }
+}
+
+export function emptyScanStats(): ScanStats {
+  return { total: 0, today: 0, avgScore: 0, highCount: 0, midCount: 0, lowCount: 0, last7Days: [] }
+}
+
+/** 本机扫描记录：浏览器 localStorage 的键 */
+export const LOCAL_HISTORY_KEY = 'xc.scanHistory'
+export const LOCAL_HISTORY_MAX = 30
+
+/** 读本机记录（只在浏览器里有；SSR 期返回空数组，不报错） */
+export function readLocalHistory(): ScanRecord[] {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(LOCAL_HISTORY_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((r) => r && typeof r === 'object')
+      .map((r) => ({
+        id: String(r.id || ''),
+        createdAt: String(r.createdAt || ''),
+        sentenceHits: Number(r.sentenceHits) || 0,
+        ruleHits: Number(r.ruleHits) || 0,
+        score: Number(r.score) || 0,
+        level: String(r.level || ''),
+        local: true,
+      }))
+  } catch {
+    return []
+  }
+}
+
+/** 追一条本机记录到最前，最多留 LOCAL_HISTORY_MAX 条。返回写入后的整表 */
+export function appendLocalHistory(rec: Omit<ScanRecord, 'id' | 'createdAt' | 'local'> & { id?: string; createdAt?: string }): ScanRecord[] {
+  const entry: ScanRecord = {
+    id: rec.id || 'local-' + Date.now(),
+    createdAt: rec.createdAt || new Date().toISOString(),
+    sentenceHits: rec.sentenceHits,
+    ruleHits: rec.ruleHits,
+    score: rec.score,
+    level: rec.level,
+    local: true,
+  }
+  const next = [entry, ...readLocalHistory()].slice(0, LOCAL_HISTORY_MAX)
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(next))
+    } catch { /* 隐私模式下写不进，不影响扫描本身 */ }
+  }
+  return next
 }
 
 export function localStats(): Stats {
@@ -307,4 +455,36 @@ export function levelClass(level: string) {
     : level === '中'
       ? 'bg-amber-soft text-amber border-[#F0DDBC]'
       : 'bg-brand-soft text-brand border-[#D3E2F0]'
+}
+
+/** 扫描结果的等级编码（high/mid/low）→ 中文档位 */
+export function scanLevelLabel(level: string) {
+  return level === 'high' ? '高风险' : level === 'mid' ? '中风险' : '低风险'
+}
+
+/** 扫描结果的等级编码 → 一段人话建议 */
+export function scanLevelAdvice(level: string) {
+  if (level === 'high') return '建议逐条核对后再签，最好找懂行的人一起看'
+  if (level === 'mid') return '有几处值得问清楚，问完再签'
+  return '未命中明显套路，仍建议通读一遍'
+}
+
+/** 分数 → 等级编码，与后端 ScanService 同一口径 */
+export function scoreToLevel(score: number) {
+  return score >= 40 ? 'high' : score >= 15 ? 'mid' : 'low'
+}
+
+/** ISO 时间 → 本地可读格式（服务端渲染时用固定格式，避免水合不一致） */
+export function formatTime(iso: string) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const p = (n: number) => String(n).padStart(2, '0')
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes())
+}
+
+/** 本地日期键 YYYY-MM-DD，用于按天归档统计 */
+export function dayKey(d: Date) {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
 }
