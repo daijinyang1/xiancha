@@ -85,7 +85,25 @@ watch(() => route.fullPath, () => scheduleMeasure())
     <div class="header-shell bg-white/95">
       <div class="wrap flex min-h-[62px] flex-wrap items-center justify-between gap-3">
         <NuxtLink to="/" class="flex items-center gap-2.5 text-ink no-underline hover:no-underline">
-          <span class="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-brand text-[17px] font-bold text-white">查</span>
+          <!-- 内联 SVG logo：圆角方底 + 「查」字线稿 + 右下放大镜把手（纯矢量，无外部请求） -->
+          <svg
+            class="h-[34px] w-[34px] flex-none rounded-[9px] text-white"
+            viewBox="0 0 40 40"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect width="40" height="40" rx="9" style="fill: var(--color-brand)" />
+            <!-- 横：木 + 日 的顶 -->
+            <path d="M11.2 14.2h17.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <!-- 竖：木 的中竖，从顶横穿到 日 上沿 -->
+            <path d="M20 9.8v6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <!-- 木 的撇捺：两条短斜线 -->
+            <path d="M15.4 18.9 12 22.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <path d="M24.6 18.9 28 22.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <!-- 日：外框 + 中横 -->
+            <rect x="14.6" y="20.6" width="10.8" height="9.8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7" />
+            <path d="M14.6 25.5h10.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          </svg>
           <span class="flex flex-col text-base font-bold leading-[1.15]">
             先查
             <small class="text-[11px] font-normal tracking-wide text-ink-3">XIAN CHA</small>
@@ -94,8 +112,9 @@ watch(() => route.fullPath, () => scheduleMeasure())
 
         <button
           type="button"
-          class="rounded-lg border border-line px-3 py-1.5 text-sm text-ink-2 md:hidden"
+          class="chip-x rounded-lg border border-line bg-white px-3 py-1.5 text-sm text-ink-2 md:hidden"
           :aria-expanded="open"
+          aria-controls="xc-mobile-nav"
           aria-label="展开导航"
           @click="open = !open"
         >
@@ -124,7 +143,7 @@ watch(() => route.fullPath, () => scheduleMeasure())
       </div>
     </div>
 
-    <nav v-if="open" class="wrap grid gap-1 border-t border-line py-2 md:hidden">
+    <nav id="xc-mobile-nav" v-if="open" class="wrap grid gap-1 border-t border-line py-2 md:hidden">
       <NuxtLink
         v-for="item in nav"
         :key="item.to"

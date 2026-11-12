@@ -8,8 +8,10 @@ const props = withDefaults(
     delay?: number
     /** 渲染成什么标签，默认 div（可以是 li / section / p 等） */
     as?: string
+    /** 走「纯淡入」档（无位移、360ms）：卡片网格这类成片出现的内容用它，节奏更轻 */
+    soft?: boolean
   }>(),
-  { delay: 0, as: 'div' },
+  { delay: 0, as: 'div', soft: false },
 )
 
 const el = ref<HTMLElement | null>(null)
@@ -69,8 +71,7 @@ onBeforeUnmount(() => {
   <component
     :is="as"
     ref="el"
-    class="reveal"
-    :class="{ 'is-in': shown }"
+    :class="[soft ? 'reveal-soft' : 'reveal', { 'is-in': shown }]"
     :style="{ '--reveal-delay': revealDelay }"
   >
     <slot />

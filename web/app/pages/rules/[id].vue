@@ -152,7 +152,7 @@ useHead({
               v-for="r in sameTypeRules"
               :key="r.id"
               :to="'/rules/' + r.id"
-              class="inline-block rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+              class="inline-block rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
               :title="r.name"
             >
               {{ r.id }} {{ r.ask }}
@@ -171,13 +171,13 @@ useHead({
           <div class="flex flex-wrap gap-2.5">
             <NuxtLink
               to="/scan"
-              class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline transition hover:bg-[#1A4368] hover:no-underline"
+              class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline btn-x hover:bg-[#1A4368] hover:no-underline"
             >
               去扫描我的合同
             </NuxtLink>
             <NuxtLink
               to="/rules"
-              class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+              class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
             >
               回到 {{ rules.length }} 条总目录
             </NuxtLink>

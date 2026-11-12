@@ -129,26 +129,27 @@ const dataRules = [
     <Reveal :delay="200">
       <Card title="数据口径：全站数字只认这几个来源" class="mt-4">
         <div class="overflow-x-auto rounded-[10px] border border-line">
-          <table class="w-full min-w-[560px] border-collapse text-[13.5px]">
-            <thead>
-              <tr class="bg-[#F7FAFD] text-[12.5px] text-ink-2">
-                <th class="w-[90px] px-3.5 py-2.5 text-left font-bold">项目</th>
-                <th class="w-[90px] px-3.5 py-2.5 text-left font-bold">现在</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">口径</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in dataRules" :key="row.k" class="border-t border-line">
-                <td class="px-3.5 py-2.5 font-bold text-ink">{{ row.k }}</td>
-                <td class="px-3.5 py-2.5 tabular-nums text-brand">{{ row.v }}</td>
-                <td class="px-3.5 py-2.5 text-ink-2">{{ row.d }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <table class="table-x min-w-[560px]">
+          <caption>全站数字的口径与出处</caption>
+          <thead>
+            <tr>
+              <th class="w-[90px] whitespace-nowrap">项目</th>
+              <th class="w-[90px] whitespace-nowrap">现在</th>
+              <th>口径</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in dataRules" :key="row.k">
+              <td class="font-bold text-ink">{{ row.k }}</td>
+              <td class="num font-bold text-brand">{{ row.v }}</td>
+              <td class="text-ink-2">{{ row.d }}</td>
+            </tr>
+          </tbody>
+        </table>
         </div>
         <p class="mb-0 mt-2.5 text-xs text-ink-3">
-          数据唯一真源是项目里的 <code>db/rules.json</code> / <code>traps.json</code> / <code>certs.json</code>。
-          页面数字从后端 /api/stats 读，后端不通时退回随包发布的同一份快照，两边口径完全一致——不会出现「线上一套数、本机一套数」。
+          数据唯一真源是 PostgreSQL 库 <code>xiancha</code> 的 <code>rule</code> / <code>trap</code> / <code>cert</code> 三张表。
+          站点构建时由 <code>tools/db-export.mjs</code> 导出快照再预渲染进页面，数字与数据库行数逐条对得上——不会出现「线上一套数、本机一套数」。
         </p>
       </Card>
     </Reveal>
@@ -242,15 +243,15 @@ const dataRules = [
       <div class="mt-4 flex flex-wrap items-center gap-2.5">
         <NuxtLink
           to="/scan"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline transition hover:bg-[#1A4368] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline btn-x hover:bg-[#1A4368] hover:no-underline"
         >去扫描我的合同</NuxtLink>
         <NuxtLink
           to="/rules"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
         >翻规则词条</NuxtLink>
         <NuxtLink
           to="/stats"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
         >看数据总览</NuxtLink>
       </div>
     </Reveal>

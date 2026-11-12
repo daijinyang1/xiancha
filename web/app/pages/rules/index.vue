@@ -141,7 +141,7 @@ function resetAll() {
           <button
             v-if="q || type || level"
             type="button"
-            class="h-8 rounded-full border border-line bg-white px-3 text-[13px] text-ink-2 transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
+            class="h-8 rounded-full border border-line chip-x bg-white px-3 text-[13px] text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
             @click="resetAll"
           >清除筛选</button>
         </div>
@@ -149,7 +149,7 @@ function resetAll() {
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!type ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="type = ''"
           >全部坑型</button>
@@ -157,7 +157,7 @@ function resetAll() {
             v-for="t in RULE_TYPES"
             :key="t"
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="type === t ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="type = type === t ? '' : t"
           >
@@ -168,7 +168,7 @@ function resetAll() {
         <div class="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!level ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="level = ''"
           >全部等级</button>
@@ -176,7 +176,7 @@ function resetAll() {
             v-for="l in LEVELS"
             :key="l"
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="level === l ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="level = level === l ? '' : l"
           >
@@ -197,7 +197,7 @@ function resetAll() {
         <p class="mb-3.5 text-[13px] text-ink-2">换个关键词试试，比如只搜「押金」两个字；或者清掉筛选看全部 {{ all.length }} 条。</p>
         <button
           type="button"
-          class="inline-flex h-[34px] items-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
+          class="inline-flex h-[34px] items-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 chip-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
           @click="resetAll"
         >清除筛选</button>
       </div>
@@ -226,7 +226,7 @@ function resetAll() {
           <div class="mt-3">
             <NuxtLink
               :to="'/rules/' + r.id"
-              class="inline-flex h-[30px] items-center rounded-[7px] border border-line bg-white px-2.5 text-[13px] text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+              class="inline-flex h-[30px] items-center rounded-[7px] border border-line bg-white px-2.5 text-[13px] text-ink-2 no-underline chip-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
             >
               单独打开这一条 →
             </NuxtLink>
@@ -280,7 +280,7 @@ function resetAll() {
             v-for="r in all"
             :key="r.id"
             :to="'/rules/' + r.id"
-            class="inline-block h-auto rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+            class="inline-block h-auto rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-ink-2 no-underline chip-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
             :title="r.ask"
           >
             {{ r.id }} {{ r.name }}

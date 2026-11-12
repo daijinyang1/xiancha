@@ -243,7 +243,7 @@ const healthRows = computed(() => {
             >{{ row.type }}</NuxtLink>
             <span class="h-[12px] flex-1 overflow-hidden rounded-full bg-[#EDF1F6]">
               <span
-                class="block h-full rounded-full bg-brand-2 transition-[width] duration-700 ease-out"
+                class="block h-full rounded-full bg-brand-2 bar-x"
                 :style="{ width: row.width + '%' }"
               />
             </span>
@@ -261,7 +261,7 @@ const healthRows = computed(() => {
           <div v-for="row in levelRows" :key="row.key" class="flex items-center gap-3">
             <span class="w-[96px] flex-none text-[13px] text-ink-2">{{ row.label }}</span>
             <span class="h-[10px] flex-1 overflow-hidden rounded-full bg-[#EDF1F6]">
-              <span class="block h-full rounded-full transition-[width] duration-700 ease-out" :class="row.bar" :style="{ width: row.percent + '%' }" />
+              <span class="block h-full rounded-full bar-x" :class="row.bar" :style="{ width: row.percent + '%' }" />
             </span>
             <span class="w-[76px] flex-none text-right text-[13px] tabular-nums text-ink-3">{{ row.count }} 条 · {{ row.percent }}%</span>
           </div>
@@ -299,7 +299,7 @@ const healthRows = computed(() => {
             <span class="text-[11px] tabular-nums text-ink-3">{{ d.count || '' }}</span>
             <div class="flex h-[84px] w-full items-end">
               <div
-                class="w-full rounded-t-[4px] transition-[height] duration-700 ease-out"
+                class="w-full rounded-t-[4px] bar-x"
                 :class="d.count ? 'bg-brand-2' : 'bg-[#E7ECF3]'"
                 :style="{ height: barHeight(d.count) + '%' }"
                 :title="d.date + '：' + d.count + ' 次，平均 ' + d.avgScore + ' 分'"
@@ -309,14 +309,14 @@ const healthRows = computed(() => {
           </div>
         </div>
 
-        <p v-if="!scanKpi.total" class="mb-0 mt-3 text-xs text-ink-3">
+        <p v-if="!scanKpi.total" class="tex-hatch mb-0 mt-3 rounded-[10px] border border-dashed border-line bg-[#FBFCFE] px-3.5 py-3 text-xs text-ink-3">
           还没有扫描记录。线上静态站不存服务端日志，这里显示的是你本机浏览器的记录 ——
-          <NuxtLink to="/scan" class="text-brand-2">扫一份合同</NuxtLink>
+          <NuxtLink to="/scan" class="link-underline font-bold text-brand-2">扫一份合同</NuxtLink>
           之后就会有数。
         </p>
         <p v-else class="mb-0 mt-3 text-xs text-ink-3">
           记录只含时间、命中句数、命中规则数和风险分，不保存合同原文。
-          <NuxtLink to="/history" class="text-brand-2">看逐条明细 →</NuxtLink>
+          <NuxtLink to="/history" class="link-underline font-bold text-brand-2">看逐条明细 →</NuxtLink>
         </p>
       </Card>
     </Reveal>
@@ -368,15 +368,15 @@ const healthRows = computed(() => {
       <div class="mt-4 flex flex-wrap items-center gap-2.5">
         <NuxtLink
           to="/rules"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline transition hover:bg-[#1A4368] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline btn-x hover:bg-[#1A4368] hover:no-underline"
         >去查规则词条</NuxtLink>
         <NuxtLink
           to="/history"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
         >看扫描历史</NuxtLink>
         <NuxtLink
           to="/about"
-          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+          class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
         >数据口径与边界</NuxtLink>
       </div>
     </Reveal>

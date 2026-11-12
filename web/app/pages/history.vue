@@ -190,7 +190,7 @@ function levelLabelOf(r: ScanRecord) {
             <span class="text-[11px] tabular-nums text-ink-3">{{ d.count || '' }}</span>
             <div class="flex h-[100px] w-full items-end">
               <div
-                class="w-full rounded-t-[4px] transition-[height] duration-700 ease-out"
+                class="w-full rounded-t-[4px] bar-x"
                 :class="d.count ? 'bg-brand-2' : 'bg-[#E7ECF3]'"
                 :style="{ height: barHeight(d.count) + '%' }"
                 :title="d.date + '：' + d.count + ' 次，平均 ' + d.avgScore + ' 分'"
@@ -211,7 +211,7 @@ function levelLabelOf(r: ScanRecord) {
             <span class="w-[132px] flex-none text-[13px] text-ink-2">{{ row.label }}</span>
             <span class="h-[10px] flex-1 overflow-hidden rounded-full bg-[#EDF1F6]">
               <span
-                class="block h-full rounded-full transition-[width] duration-700 ease-out"
+                class="block h-full rounded-full bar-x"
                 :class="row.bar"
                 :style="{ width: row.percent + '%' }"
               />
@@ -232,7 +232,7 @@ function levelLabelOf(r: ScanRecord) {
           <span class="text-xs text-ink-3">最多显示最近 {{ LOCAL_HISTORY_MAX }} 条</span>
         </template>
 
-        <div v-if="!hasAny" class="rounded-[10px] border border-dashed border-line bg-[#FBFCFE] px-5 py-10 text-center">
+        <div v-if="!hasAny" class="tex-hatch rounded-[10px] border border-dashed border-line bg-[#FBFCFE] px-5 py-10 text-center">
           <p class="mb-1.5 text-[15px] font-bold text-ink">还没有扫描记录</p>
           <p class="mb-4 text-[13px] text-ink-2">
             扫一份合同就会有一条记录：只存时间、命中句数、命中规则数和风险分，不存原文。
@@ -240,37 +240,39 @@ function levelLabelOf(r: ScanRecord) {
           </p>
           <NuxtLink
             to="/scan"
-            class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline transition hover:bg-[#1A4368] hover:no-underline"
+            class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white no-underline btn-x hover:bg-[#1A4368] hover:no-underline"
           >
             去扫描我的合同 →
           </NuxtLink>
         </div>
 
         <div v-else class="overflow-x-auto rounded-[10px] border border-line">
-          <table class="w-full min-w-[680px] border-collapse text-[13.5px]">
+          <table class="table-x min-w-[680px]">
+            <caption class="sr-only">扫描记录：时间、命中句数、命中规则数、风险分、档位与来源</caption>
             <thead>
-              <tr class="bg-[#F7FAFD] text-[12.5px] text-ink-2">
-                <th class="px-3.5 py-2.5 text-left font-bold">时间</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">命中句</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">命中规则</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">风险分</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">档位</th>
-                <th class="px-3.5 py-2.5 text-left font-bold">来源</th>
+              <tr>
+                <th class="whitespace-nowrap">时间</th>
+                <th class="num">命中句</th>
+                <th class="num">命中规则</th>
+                <th class="num">风险分</th>
+                <th>档位</th>
+                <th>来源</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="r in merged" :key="r.id" class="border-t border-line transition hover:bg-[#FBFCFE]">
-                <td class="whitespace-nowrap px-3.5 py-2.5 text-ink-2">{{ formatTime(r.createdAt) }}</td>
-                <td class="px-3.5 py-2.5 tabular-nums text-ink-2">{{ r.sentenceHits }} 句</td>
-                <td class="px-3.5 py-2.5 tabular-nums text-ink-2">{{ r.ruleHits }} 条</td>
-                <td class="px-3.5 py-2.5 font-bold tabular-nums text-ink">{{ r.score }}</td>
-                <td class="px-3.5 py-2.5">
-                  <span class="inline-block whitespace-nowrap rounded-full border px-[7px] text-[11px] font-bold leading-[18px]" :class="levelBadge(r.score).cls">
+              <tr v-for="r in merged" :key="r.id">
+                <td class="whitespace-nowrap text-ink-2">{{ formatTime(r.createdAt) }}</td>
+                <td class="num text-ink-2">{{ r.sentenceHits }}</td>
+                <td class="num text-ink-2">{{ r.ruleHits }}</td>
+                <td class="num font-bold text-ink">{{ r.score }}</td>
+                <td>
+                  <span class="inline-flex items-center whitespace-nowrap rounded-full border px-[7px] text-[11px] font-bold leading-[18px]" :class="levelBadge(r.score).cls">
+                    <span class="dot-status" aria-hidden="true" />
                     {{ levelLabelOf(r) || levelBadge(r.score).text }}
                   </span>
                 </td>
-                <td class="px-3.5 py-2.5">
-                  <span v-if="r.local" class="inline-block rounded-[4px] border border-line bg-[#EFF2F6] px-1.5 text-[11px] font-bold leading-[18px] text-ink-3">本机</span>
+                <td>
+                  <span v-if="r.local" class="inline-flex items-center rounded-[4px] border border-line bg-[#EFF2F6] px-1.5 text-[11px] font-bold leading-[18px] text-ink-3"><span class="dot-status is-hollow" aria-hidden="true" />本机</span>
                   <span v-else class="text-[12px] text-ink-3">服务端</span>
                 </td>
               </tr>
@@ -281,13 +283,13 @@ function levelLabelOf(r: ScanRecord) {
         <div class="mt-4 flex flex-wrap items-center gap-2.5">
           <NuxtLink
             to="/scan"
-            class="inline-flex h-[34px] items-center justify-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+            class="inline-flex h-[34px] items-center justify-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
           >
             再扫一份 →
           </NuxtLink>
           <NuxtLink
             to="/stats"
-            class="inline-flex h-[34px] items-center justify-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+            class="inline-flex h-[34px] items-center justify-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 no-underline btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
           >
             看数据总览 →
           </NuxtLink>

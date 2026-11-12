@@ -144,7 +144,7 @@ function countdownText(c: Cert) {
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              class="h-8 rounded-full border px-[13px] text-[13px] transition"
+              class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
               :class="!level ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
               @click="level = ''"
             >全部</button>
@@ -152,7 +152,7 @@ function countdownText(c: Cert) {
               v-for="l in levels"
               :key="l"
               type="button"
-              class="h-8 rounded-full border px-[13px] text-[13px] transition"
+              class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
               :class="level === l ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
               @click="level = level === l ? '' : l"
             >{{ l }}</button>
@@ -161,45 +161,46 @@ function countdownText(c: Cert) {
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-line">
-          <table class="w-full min-w-[1040px] table-fixed border-collapse text-[13.5px]">
+          <table class="table-x min-w-[1040px] table-fixed">
+            <caption class="sr-only">证书一览：门槛、适合谁、报名与考试窗口、费用、官网</caption>
             <thead>
-              <tr class="bg-[#F7FAFD] text-[12.5px] text-ink-2">
-                <th class="w-[150px] whitespace-nowrap px-3.5 py-3 text-left font-bold">证书</th>
-                <th class="w-[80px] whitespace-nowrap px-3.5 py-3 text-left font-bold">门槛</th>
-                <th class="w-[190px] px-3.5 py-3 text-left font-bold">适合谁</th>
-                <th class="w-[175px] px-3.5 py-3 text-left font-bold">报名窗口</th>
-                <th class="w-[175px] px-3.5 py-3 text-left font-bold">考试窗口</th>
-                <th class="w-[140px] px-3.5 py-3 text-left font-bold">费用</th>
-                <th class="w-[150px] px-3.5 py-3 text-left font-bold">官网／机构</th>
+              <tr>
+                <th class="w-[150px] whitespace-nowrap">证书</th>
+                <th class="w-[80px] whitespace-nowrap">门槛</th>
+                <th class="w-[190px]">适合谁</th>
+                <th class="w-[175px]">报名窗口</th>
+                <th class="w-[175px]">考试窗口</th>
+                <th class="w-[140px]">费用</th>
+                <th class="w-[150px]">官网／机构</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="7" class="px-3.5 py-10 text-center text-ink-3">正在读取证书数据……</td>
+                <td colspan="7" class="py-10 text-center text-ink-3">正在读取证书数据……</td>
               </tr>
               <tr v-else-if="!filtered.length">
-                <td colspan="7" class="px-3.5 py-10 text-center text-ink-3">
+                <td colspan="7" class="py-10 text-center text-ink-3">
                   没有符合条件的证书。
                   <button type="button" class="ml-1 text-brand underline" @click="level = ''">看全部</button>
                 </td>
               </tr>
-              <tr v-for="c in filtered" :key="c.id" class="border-t border-line transition hover:bg-[#FBFCFE]">
-                <td class="px-3.5 py-3 align-top">
+              <tr v-for="c in filtered" :key="c.id">
+                <td class="align-top">
                   <b class="text-ink">{{ c.name }}</b>
                   <div v-if="c.note" class="mt-1 text-xs text-ink-3">{{ c.note }}</div>
                 </td>
-                <td class="px-3.5 py-3 align-top">
+                <td class="align-top">
                   <span
-                    class="inline-block whitespace-nowrap rounded-full border px-[7px] text-[11px] font-bold leading-[18px]"
+                    class="inline-flex items-center whitespace-nowrap rounded-full border px-[7px] text-[11px] font-bold leading-[18px]"
                     :class="c.level === '门槛低' ? 'border-[#D3E2F0] bg-brand-soft text-brand' : 'border-[#F0DDBC] bg-amber-soft text-amber'"
-                  >{{ c.level }}</span>
+                  ><span class="dot-status" :class="c.level === '门槛低' ? 'is-filled' : 'is-hollow'" aria-hidden="true" />{{ c.level }}</span>
                 </td>
-                <td class="px-3.5 py-3 align-top text-ink-2">{{ c.fit }}</td>
-                <td class="px-3.5 py-3 align-top text-ink-2">{{ c.signup }}</td>
-                <td class="px-3.5 py-3 align-top text-ink-2">{{ c.exam }}</td>
-                <td class="px-3.5 py-3 align-top text-ink-2">{{ c.fee }}</td>
-                <td class="px-3.5 py-3 align-top text-[12.5px] text-ink-3">
-                  <a v-if="c.signupUrl" :href="c.signupUrl" target="_blank" rel="noopener noreferrer" class="text-brand">{{ c.official }}</a>
+                <td class="align-top text-ink-2">{{ c.fit }}</td>
+                <td class="align-top text-ink-2">{{ c.signup }}</td>
+                <td class="align-top text-ink-2">{{ c.exam }}</td>
+                <td class="align-top text-ink-2">{{ c.fee }}</td>
+                <td class="align-top text-[12.5px] text-ink-3">
+                  <a v-if="c.signupUrl" :href="c.signupUrl" target="_blank" rel="noopener noreferrer" class="link-underline text-brand">{{ c.official }}</a>
                   <span v-else>{{ c.official }}</span>
                 </td>
               </tr>

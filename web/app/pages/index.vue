@@ -121,8 +121,10 @@ const layer3 = [
 <template>
   <div class="wrap">
     <!-- ============ Hero ============ -->
-    <section class="hero-surface overflow-hidden rounded-xl border border-line shadow-sm">
-      <div class="border-b-[3px] border-brand px-6 pb-7 pt-7 sm:px-10 sm:pb-9 sm:pt-10">
+    <section class="hero-surface relative overflow-hidden rounded-xl border border-line shadow-sm">
+      <!-- 纹理装饰层：绝对定位铺满 Hero，pointer-events:none、z-index 0，内容一律 z-1 压在上面 -->
+      <div class="tex-layer tex-dot tex-fade" aria-hidden="true" />
+      <div class="relative z-[1] border-b-[3px] border-brand px-6 pb-7 pt-7 sm:px-10 sm:pb-9 sm:pt-10">
         <Reveal :delay="0">
           <div class="mb-4 flex items-center gap-1.5">
             <span class="h-1 w-9 rounded-sm bg-brand" />
@@ -141,7 +143,7 @@ const layer3 = [
         </Reveal>
 
         <Reveal :delay="180">
-          <p class="mb-6 max-w-[680px] text-[15px] text-ink-2 sm:text-base">
+          <p class="mb-6 max-w-[34em] text-[15px] text-ink-2 sm:text-base">
             毕业、找工作、签合同、考证、办手续——这些事第一次遇上，最怕的不是难，是<b class="text-ink">不知道该问什么</b>。这里的每一页都只干一件事：把该问的问题提前摆到你面前，把依据和出处写清楚。现在的主线是就业避坑，从实习协议和劳动合同开始。
           </p>
         </Reveal>
@@ -156,7 +158,7 @@ const layer3 = [
               <input
                 v-model="keyword"
                 type="search"
-                class="h-[50px] w-full rounded-xl border border-line bg-white pl-11 pr-3 text-[15px] outline-none transition focus:border-brand-2 focus:ring-[3px] focus:ring-brand-2/15"
+                class="h-[50px] w-full rounded-[9px] border border-line bg-white pl-11 pr-3 text-[15px] outline-none transition focus:border-brand-2 focus:ring-[3px] focus:ring-brand-2/15"
                 placeholder="搜一个词，比如：押金、违约金、试用期、竞业、社保……"
                 autocomplete="off"
                 aria-label="在全站内容里搜索"
@@ -168,7 +170,7 @@ const layer3 = [
                 v-for="s in samples"
                 :key="s"
                 type="button"
-                class="h-8 rounded-full border border-line bg-white px-[13px] text-[13px] text-ink-2 transition hover:-translate-y-0.5 hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:text-brand"
+                class="chip-x h-8 rounded-full border border-line bg-white px-[13px] text-[13px] text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:text-brand"
                 @click="go(s)"
               >
                 {{ s }}
@@ -181,13 +183,13 @@ const layer3 = [
           <div class="mt-6 flex flex-wrap items-center gap-2.5">
             <NuxtLink
               to="/scan"
-              class="inline-flex h-11 items-center justify-center rounded-[9px] bg-brand px-[22px] text-[15px] font-bold text-white no-underline shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1A4368] hover:no-underline hover:shadow-md"
+              class="btn-x h-11 bg-brand px-[22px] text-[15px] font-bold text-white no-underline shadow-sm hover:bg-[#1A4368] hover:no-underline hover:shadow-md"
             >
               粘贴合同全文，逐句扫一遍
             </NuxtLink>
             <NuxtLink
               to="/traps"
-              class="inline-flex h-11 items-center justify-center rounded-[9px] border border-line bg-white px-[22px] text-[15px] text-ink-2 no-underline transition hover:-translate-y-0.5 hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:text-ink hover:no-underline"
+              class="btn-x h-11 border border-line bg-white px-[22px] text-[15px] text-ink-2 no-underline hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:text-ink hover:no-underline"
             >
               看看别人踩过的坑
             </NuxtLink>
@@ -199,7 +201,7 @@ const layer3 = [
       </div>
 
       <!-- KPI 四格：数字滚动 -->
-      <div class="grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x">
+      <div class="relative z-[1] grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x">
         <Reveal :delay="0" class="px-5 py-4 sm:px-6">
           <b class="block text-[26px] leading-tight text-brand"><CountUp :to="stats.rules" /></b>
           <span class="text-xs text-ink-3">条风险规则</span>
@@ -232,22 +234,30 @@ const layer3 = [
         <Reveal
           v-for="(e, i) in entries"
           :key="e.to"
+          soft
           :delay="i * 70"
           class="h-full"
         >
           <NuxtLink
             :to="e.to"
-            class="entry-card group flex h-full flex-col rounded-xl border border-line bg-white p-5 no-underline shadow-sm hover:border-[#BFD2E5] hover:shadow-lg hover:no-underline"
+            class="entry-card group relative flex h-full flex-col rounded-xl border border-line bg-white p-5 no-underline shadow-sm hover:border-[#BFD2E5] hover:shadow-lg hover:no-underline"
           >
-            <div class="mb-3.5 flex items-center justify-between gap-2">
-              <span class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand-soft text-brand">
-                <span class="entry-glyph flex items-center justify-center"><EntryIcon :name="e.icon" /></span>
-              </span>
-              <span class="rounded-full border border-line bg-[#EFF2F6] px-[7px] text-[11px] font-bold leading-[18px] text-ink-2">{{ e.tag }}</span>
+            <!-- hover 才亮的 brand 渐变叠层：一层绝对定位 span，零图片，走 --duration-base -->
+            <span
+              class="entry-veil pointer-events-none absolute inset-0 rounded-xl"
+              aria-hidden="true"
+            />
+            <div class="relative z-[1] flex h-full flex-col">
+              <div class="mb-3.5 flex items-center justify-between gap-2">
+                <span class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand-soft text-brand">
+                  <span class="entry-glyph flex items-center justify-center"><EntryIcon :name="e.icon" /></span>
+                </span>
+                <span class="rounded-full border border-line bg-[#EFF2F6] px-[7px] text-[11px] font-bold leading-[18px] text-ink-2">{{ e.tag }}</span>
+              </div>
+              <h3 class="!mb-1.5 !text-[17px] text-ink">{{ e.title }}</h3>
+              <p class="mb-3 flex-1 text-[13.5px] text-ink-2">{{ e.desc }}</p>
+              <span class="text-[13px] font-bold text-brand">{{ e.more }}</span>
             </div>
-            <h3 class="!mb-1.5 !text-[17px] text-ink">{{ e.title }}</h3>
-            <p class="mb-3 flex-1 text-[13.5px] text-ink-2">{{ e.desc }}</p>
-            <span class="text-[13px] font-bold text-brand">{{ e.more }}</span>
           </NuxtLink>
         </Reveal>
       </div>
@@ -295,34 +305,35 @@ const layer3 = [
 
       <h3 class="!mb-2 !mt-5 !text-base">第一层 · 现在就能查（已经能用）</h3>
       <div class="mb-2 overflow-x-auto rounded-xl border border-line">
-        <table class="w-full min-w-[420px] border-collapse text-[13.5px]">
+        <table class="table-x min-w-[420px]">
+          <caption>第一层：现在就能查的四格</caption>
           <thead>
-            <tr class="bg-[#F7FAFD] text-[12.5px] text-ink-2">
-              <th class="whitespace-nowrap px-3.5 py-3 text-left font-bold">栏目</th>
-              <th class="px-3.5 py-3 text-left font-bold">能回答什么</th>
-              <th class="whitespace-nowrap px-3.5 py-3 text-left font-bold">状态</th>
+            <tr>
+              <th class="whitespace-nowrap">栏目</th>
+              <th>能回答什么</th>
+              <th class="whitespace-nowrap">状态</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t border-line">
-              <td class="whitespace-nowrap px-3.5 py-3 font-bold">合同风险扫描</td>
-              <td class="px-3.5 py-3">逐句匹配 {{ stats.rules }} 条规则，给出风险等级、法律依据与修改建议</td>
-              <td class="whitespace-nowrap px-3.5 py-3"><span class="rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok">已上线</span></td>
+            <tr>
+              <td class="whitespace-nowrap font-bold">合同风险扫描</td>
+              <td>逐句匹配 {{ stats.rules }} 条规则，给出风险等级、法律依据与修改建议</td>
+              <td class="whitespace-nowrap"><span class="inline-flex items-center rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok"><span class="dot-status" aria-hidden="true" />已上线</span></td>
             </tr>
-            <tr class="border-t border-line">
-              <td class="whitespace-nowrap px-3.5 py-3 font-bold">避坑案例库</td>
-              <td class="px-3.5 py-3">{{ stats.traps }} 个脱敏案例，写清当时的信号与后来的处理</td>
-              <td class="whitespace-nowrap px-3.5 py-3"><span class="rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok">已上线</span></td>
+            <tr>
+              <td class="whitespace-nowrap font-bold">避坑案例库</td>
+              <td>{{ stats.traps }} 个脱敏案例，写清当时的信号与后来的处理</td>
+              <td class="whitespace-nowrap"><span class="inline-flex items-center rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok"><span class="dot-status" aria-hidden="true" />已上线</span></td>
             </tr>
-            <tr class="border-t border-line">
-              <td class="whitespace-nowrap px-3.5 py-3 font-bold">规则词条</td>
-              <td class="px-3.5 py-3">{{ stats.rules }} 条规则一条一页，含判定、法条与改法</td>
-              <td class="whitespace-nowrap px-3.5 py-3"><span class="rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok">已上线</span></td>
+            <tr>
+              <td class="whitespace-nowrap font-bold">规则词条</td>
+              <td>{{ stats.rules }} 条规则一条一页，含判定、法条与改法</td>
+              <td class="whitespace-nowrap"><span class="inline-flex items-center rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok"><span class="dot-status" aria-hidden="true" />已上线</span></td>
             </tr>
-            <tr class="border-t border-line">
-              <td class="whitespace-nowrap px-3.5 py-3 font-bold">考证日历</td>
-              <td class="px-3.5 py-3">{{ stats.certs }} 张证书的报考门槛、报名与考试窗口、费用口径</td>
-              <td class="whitespace-nowrap px-3.5 py-3"><span class="rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok">已上线</span></td>
+            <tr>
+              <td class="whitespace-nowrap font-bold">考证日历</td>
+              <td>{{ stats.certs }} 张证书的报考门槛、报名与考试窗口、费用口径</td>
+              <td class="whitespace-nowrap"><span class="inline-flex items-center rounded-full bg-ok-soft px-[7px] text-[11px] font-bold leading-[18px] text-ok"><span class="dot-status" aria-hidden="true" />已上线</span></td>
             </tr>
           </tbody>
         </table>
@@ -333,19 +344,20 @@ const layer3 = [
         下面这些是我认为同样值得查、但现在还没做的东西。写在首页上，是提醒自己别把「以后要做」说成「已经做了」。按顺序来，一次只加一格。
       </p>
       <div class="overflow-x-auto rounded-xl border border-line">
-        <table class="w-full min-w-[420px] border-collapse text-[13.5px]">
+        <table class="table-x min-w-[420px]">
+          <caption>第二层：排队中的主题，按顺序一次加一格</caption>
           <thead>
-            <tr class="bg-[#F7FAFD] text-[12.5px] text-ink-2">
-              <th class="w-[150px] px-3.5 py-3 text-left font-bold">主题</th>
-              <th class="px-3.5 py-3 text-left font-bold">要回答的问题</th>
-              <th class="w-[100px] px-3.5 py-3 text-left font-bold">状态</th>
+            <tr>
+              <th class="w-[150px] whitespace-nowrap">主题</th>
+              <th>要回答的问题</th>
+              <th class="w-[100px] whitespace-nowrap">状态</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in layer2" :key="row.topic" class="border-t border-line">
-              <td class="px-3.5 py-3 font-bold">{{ row.topic }}</td>
-              <td class="px-3.5 py-3 text-ink-2">{{ row.question }}</td>
-              <td class="px-3.5 py-3"><span class="rounded-full border border-line bg-[#EFF2F6] px-[7px] text-[11px] font-bold leading-[18px] text-ink-2">排队中</span></td>
+            <tr v-for="row in layer2" :key="row.topic">
+              <td class="font-bold">{{ row.topic }}</td>
+              <td class="text-ink-2">{{ row.question }}</td>
+              <td><span class="inline-flex items-center rounded-full border border-line bg-[#EFF2F6] px-[7px] text-[11px] font-bold leading-[18px] text-ink-2"><span class="dot-status is-hollow" aria-hidden="true" />排队中</span></td>
             </tr>
           </tbody>
         </table>

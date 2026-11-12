@@ -148,7 +148,7 @@ function resetAll() {
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!type ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="type = ''"
           >全部</button>
@@ -156,7 +156,7 @@ function resetAll() {
             v-for="t in RULE_TYPES"
             :key="t"
             type="button"
-            class="h-8 rounded-full border px-[13px] text-[13px] transition"
+            class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="type === t ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
             @click="type = type === t ? '' : t"
           >
@@ -168,13 +168,13 @@ function resetAll() {
     </Reveal>
 
     <div class="mt-4 grid gap-3.5 md:grid-cols-2">
-      <p v-if="loading" class="col-span-full rounded-xl border border-line bg-white px-4 py-14 text-center text-sm text-ink-3">正在读取案例数据……</p>
-      <div v-else-if="!filtered.length" class="col-span-full rounded-xl border border-dashed border-line bg-[#FBFCFE] px-4 py-12 text-center">
+      <p v-if="loading" class="tex-dot col-span-full rounded-xl border border-line bg-white px-4 py-14 text-center text-sm text-ink-3">正在读取案例数据……</p>
+      <div v-else-if="!filtered.length" class="tex-hatch col-span-full rounded-xl border border-dashed border-line bg-[#FBFCFE] px-4 py-12 text-center">
         <p class="mb-1.5 text-sm font-bold text-ink">没有符合条件的案例</p>
         <p class="mb-3.5 text-[13px] text-ink-2">换个关键词，或者清掉筛选看看全部 {{ all.length }} 条。</p>
         <button
           type="button"
-          class="inline-flex h-[34px] items-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
+          class="chip-x inline-flex h-[34px] items-center rounded-[9px] border border-line bg-white px-3.5 text-[13px] text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
           @click="resetAll"
         >清除筛选</button>
       </div>
@@ -216,7 +216,7 @@ function resetAll() {
                   v-for="r in relatedRules(t)"
                   :key="r.id"
                   :to="'/rules/' + r.id"
-                  class="inline-block rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-brand no-underline transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
+                  class="inline-block rounded-full border border-line bg-white px-2.5 py-[3px] text-[13px] text-brand no-underline chip-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD] hover:no-underline"
                   :title="r.name"
                 >
                   {{ r.id }} {{ r.ask }}

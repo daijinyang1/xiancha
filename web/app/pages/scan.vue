@@ -188,7 +188,7 @@ const { toast } = useToast()
           <div class="mt-3 flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white transition hover:bg-[#1A4368] disabled:opacity-50"
+              class="inline-flex h-[38px] items-center justify-center rounded-[9px] bg-brand px-4 text-sm font-bold text-white btn-x hover:bg-[#1A4368] disabled:opacity-50"
               :disabled="loading"
               @click="run"
             >
@@ -196,14 +196,14 @@ const { toast } = useToast()
             </button>
             <button
               type="button"
-              class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 transition hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
+              class="inline-flex h-[38px] items-center justify-center rounded-[9px] border border-line bg-white px-4 text-sm text-ink-2 btn-x hover:border-[#C8D4E2] hover:bg-[#F7FAFD]"
               @click="fillDemo"
             >
               填入示例合同
             </button>
             <button
               type="button"
-              class="inline-flex h-[38px] items-center justify-center rounded-[9px] px-4 text-sm text-ink-3 transition hover:bg-[#EDF1F6]"
+              class="inline-flex h-[38px] items-center justify-center rounded-[9px] px-4 text-sm text-ink-3 btn-x hover:bg-[#EDF1F6]"
               @click="clearAll"
             >
               清空
@@ -254,7 +254,7 @@ const { toast } = useToast()
               <div v-for="row in typeBreakdown" :key="row.type" class="flex items-center gap-2">
                 <span class="w-[62px] flex-none text-[12px] text-ink-2">{{ row.type }}</span>
                 <span class="h-[7px] flex-1 overflow-hidden rounded-full bg-[#EDF1F6]">
-                  <span class="block h-full rounded-full bg-brand-2 transition-[width] duration-700 ease-out" :style="{ width: row.width + '%' }" />
+                  <span class="block h-full rounded-full bg-brand-2 bar-x" :style="{ width: row.width + '%' }" />
                 </span>
                 <span class="w-[30px] flex-none text-right text-[12px] tabular-nums text-ink-3">{{ row.count }}</span>
               </div>
@@ -296,7 +296,7 @@ const { toast } = useToast()
           <div v-if="result && result.hits.length" class="mt-4 flex flex-wrap items-center gap-2.5 border-t border-line pt-3.5">
             <button
               type="button"
-              class="inline-flex h-[30px] items-center justify-center rounded-[7px] bg-brand px-2.5 text-[13px] font-bold text-white transition hover:bg-[#1A4368]"
+              class="inline-flex h-[30px] items-center justify-center rounded-[7px] bg-brand px-2.5 text-[13px] font-bold text-white btn-x hover:bg-[#1A4368]"
               @click="copyList"
             >
               一键复制风险清单

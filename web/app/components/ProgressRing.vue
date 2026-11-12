@@ -91,7 +91,7 @@ watch(ratio, (val) => {
         stroke-linecap="round"
         :stroke-dasharray="circumference"
         :stroke-dashoffset="dashoffset"
-        style="transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1)"
+        class="ring-x"
       />
     </svg>
 
