@@ -605,6 +605,37 @@ export const POSITIVE = [
   }
 ]
 
+// NEGATION_COMPLIANT：合同里极常见的「我们不做坏事」声明。
+// 这些句子含「不收取押金」「不扣押证件」等字样，规则正则会命中，必须靠**否定语境守护**压掉。
+// 只在默认模式（走 functions/_lib/scan.js 真引擎）校验；--from-db 是纯正则模式，跳过。
+export const NEGATION_COMPLIANT = [
+  '公司不收取任何押金。',
+  '用人单位不得以任何名义向劳动者收取押金。',
+  '本公司承诺不向员工收取押金或保证金。',
+  '入职无需缴纳押金。',
+  '公司不要求员工交服装费。',
+  '不扣押员工身份证原件。',
+  '公司不会扣押员工任何证件。',
+  '我们不收培训费。',
+  '入职不收取任何费用。',
+  '公司不强制员工加班。',
+  '不会拖欠工资。',
+  '不要求员工自费体检。',
+  '公司不扣留毕业证。',
+  '不需要交诚意金。',
+]
+
+// NEGATION_MIXED：否定与违规并存，必须**只报违规那一半**。
+// 逗号处断从句是关键 —— 按句号断会把违规那半一起压掉。
+export const NEGATION_MIXED = [
+  { text: '公司不收取押金，但要交 800 元服装费。', expect: ['R04'] },
+  { text: '我们不收押金，不过要扣押身份证原件。', expect: ['R03'] },
+  { text: '公司不收取押金，不过要扣押身份证原件。', expect: ['R03'] },
+  { text: '入职不需要押金，但试用期三个月不签合同。', expect: ['R17', 'R38'] },
+  { text: '不收取任何费用，也不签劳动合同。', expect: ['R38'] },
+  { text: '不但不缴社保，还说试用期没有。', expect: ['R25'] },
+]
+
 // NEGATIVE：合规句 + 与陷阱无关的中性句，必须零命中
 export const NEGATIVE = [
   "公司依法为员工缴纳五险一金。",
@@ -709,6 +740,8 @@ function hitIds(compiled, text) {
 
 async function main() {
   const fromDb = process.argv.includes('--from-db')
+  // --check：只做纯正则校验（跳过依赖真引擎的否定语境守护那两组）
+  const checkOnly = process.argv.includes('--check')
   const rules = await loadRules(fromDb)
   const { out: compiled, bad } = compile(rules)
 
@@ -738,6 +771,29 @@ async function main() {
     }
   }
 
+  // 否定语境守护：这两组必须走真引擎（functions/_lib/scan.js），纯正则模式测不出守护
+  if (!fromDb && !checkOnly) {
+    const { scanText } = await import('../functions/_lib/scan.js')
+    const engineIds = (s) => [...new Set((scanText(s).hits || []).flatMap((h) => (h.rules || []).map((r) => r.id)))].sort()
+    for (const t of NEGATION_COMPLIANT) {
+      const got = engineIds(t)
+      if (got.length === 0) pass++
+      else {
+        fail++
+        failures.push(`FAIL  ${t}\n        否定声明应零命中，实得 [${got.join(',')}]（否定语境守护失效？）`)
+      }
+    }
+    for (const c of NEGATION_MIXED) {
+      const got = engineIds(c.text)
+      const missing = c.expect.filter((e) => !got.includes(e))
+      if (missing.length === 0) pass++
+      else {
+        fail++
+        failures.push(`FAIL  ${c.text}\n        混合句缺 ${missing.join('/')}，实得 [${got.join(',') || '无'}]（从句切分太宽？）`)
+      }
+    }
+  }
+
   if (failures.length) {
     console.log('')
     for (const f of failures) console.log(f)
@@ -745,7 +801,9 @@ async function main() {
   }
 
   const total = POSITIVE.length + NEGATIVE.length
+  const extra = fromDb || checkOnly ? 0 : NEGATION_COMPLIANT.length + NEGATION_MIXED.length
   console.log(`positive ${POSITIVE.length} 条 / negative ${NEGATIVE.length} 条，合计 ${total} 条`)
+  if (extra) console.log(`否定语境守护 ${NEGATION_COMPLIANT.length} 条合规声明 + ${NEGATION_MIXED.length} 条混合句，共 ${extra} 条`)
   console.log(`通过 ${pass} / 失败 ${fail}`)
   process.exit(fail === 0 ? 0 : 1)
 }

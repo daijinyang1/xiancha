@@ -79,13 +79,14 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 11. **深色模式不写 `dark:` 前缀类**：只覆盖 `[data-mode="dark"]` 里的 `--color-*` 令牌，否则 10 个页面必漏。新增颜色请先加成令牌。
 12. **动效时长纪律**：交互类 ≤200ms（`--duration-quick` 120 / `--duration-base` 180），入场类 360/620ms。任何 >700ms 的动画算 bug（`ci-check.mjs` 第 10 项会拦）。
 13. **深色切换走 View Transitions**：`web/app/composables/useTheme.ts` 是唯一出口。有 `document.startViewTransition` 时**只走圆形揭示**（从开关中心 `getBoundingClientRect()` 算半径，320ms），**不再挂** `.theme-transitioning`（两层同时开会给全站 3500 个过渡，/rules 累计阻塞 435ms）。UA 默认交叉淡入必须用 `animation: none` 关掉，否则圆内还在淡入、等于两层叠加。
-14. **规则正则必须双端可编译**：同一份 `regex_source` 要同时被 Java `Pattern` 与 JS `RegExp` 编译（禁 `\p{..}`、`\Q..\E`、possessive `a++`、命名组），窗口 ≤`{0,30}`、单条 ≤300 字符。改完跑 `node tools/rule-cases.mjs --from-db`（136 条必须 136/0）。
+14. **规则正则必须双端可编译**：同一份 `regex_source` 要同时被 Java `Pattern` 与 JS `RegExp` 编译（禁 `\p{..}`、`\Q..\E`、possessive `a++`、命名组），窗口 ≤`{0,30}`、单条 ≤300 字符。改完跑 `node tools/rule-cases.mjs`（默认模式 156 条必须 156/0；`--from-db` 是纯正则模式 136/0）。
+15. **否定语境守护不许关**：`functions/_lib/scan.js` 的 `inNegatedClause` / `isAbsenceRule` 与 `ScanService` 同名方法，压掉「公司不收取任何押金」这类合规声明（误报 8 条 → 0 条）。三条约束：作用域按从句切（逗号也断）、排除假否定词（不过/不仅/不但/不管/不论/不得不）、正则自带 `不/未/没/无` 的 38 条规则不加守护。改任一侧必须同步另一侧。
 
 ## 6. 自检清单（交付前必过）
 - [ ] `node tools/ci-check.mjs` → 10 项全过（GitHub Actions 同款，本地先过再推）
 - [ ] `node tools/seo-check.mjs .out` → 8 组全过
 - [ ] `node tools/verify-stack.mjs` → 20 项全过（需 Postgres + jar，验的是「真连数据库」不是快照）
-- [ ] `node tools/rule-cases.mjs --from-db` → 136/0（改了任何 `regex_source` 才需要，但改了不跑等于没验）
+- [ ] `node tools/rule-cases.mjs` → 156/0（默认模式，含 14 条否定声明 + 6 条混合句；改了任何 `regex_source` 或动了否定守护都必须跑）
 - [ ] 深色切换真看过一遍：圆形揭示从开关那里扩散，不是整页瞬间变色，也没有 250ms 的交叉淡入叠在上面
 - [ ] `grep -rl "后端未连接" .out --include=*.html` 与 `grep -rl "127.0.0.1:8080" .out --include=*.html` 都必须是 0
 - [ ] `node tools/smoke.mjs` → 44 项全过（需三端口齐）

@@ -168,6 +168,75 @@ public class ScanService {
         return new int[] { start, end };
     }
 
+    /* ─────────────────────────── 否定语境守护 ───────────────────────────
+     * 与 functions/_lib/scan.js 的 inNegatedClause / isAbsenceRule 逐行对应，改一边必须改另一边。
+     *
+     * 为什么要：合同里大量「我们不做坏事」的声明，例如「公司不收取任何押金。」
+     * 「不扣押员工身份证原件。」规则写的是「收取押金」，遇到前面的「不」照样命中，
+     * 用户一扫就看到一片红 —— 系统性误报，不是某条规则写错。
+     *
+     * 三条约束（实测得出，改前先看 tools/rule-cases.mjs）：
+     *  1. 作用域按从句切（，、；也断），不能按句号 —— 否则
+     *     「公司不收取押金，但要交 800 元服装费」里的 R01 会被连带压掉。
+     *  2. 排除假否定词：不过/不仅/不但/不光/不管/不论/不得不/不外乎/差不多/了不起/时不时 ——
+     *     否则「我们不收押金，不过要扣押身份证原件」里的 R03 会被误杀。
+     *  3. 规则本身描述「义务缺失」的不加守护（正则含 不/未/没/无 的 38 条）——
+     *     否则「不签劳动合同」「公司不交社保」「干不满一年不发年终奖」会全部漏掉。
+     */
+    private static final String CLAUSE_BOUND = "。！？\n\r，,、；;";
+
+    private static final Pattern FALSE_NEGATIVE = Pattern.compile(
+            "不过|不仅|不但|不光|不管|不论|不得不|不外乎|差不多|了不起|时不时");
+
+    private static final Pattern REAL_NEGATIVE = Pattern.compile(
+            "无需|无须|不得|禁止|严禁|绝不|不会|不存在|不予|暂不|并未|决不|免于|免除|不|没|未|免|无");
+
+    /** 规则是否在描述「义务缺失」（正则里自带否定字）—— 这类规则不加守护。 */
+    static boolean isAbsenceRule(Rule rule) {
+        String src = rule == null ? null : rule.getRegexSource();
+        if (src == null) {
+            return false;
+        }
+        for (int i = 0; i < src.length(); i++) {
+            char c = src.charAt(i);
+            if (c == '不' || c == '未' || c == '没' || c == '无') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 取 index 所在从句的 [start, index) 文本（从句边界含逗号、顿号、分号）。 */
+    static String clauseBefore(String text, int index) {
+        int start = 0;
+        for (int i = index - 1; i >= 0; i--) {
+            if (CLAUSE_BOUND.indexOf(text.charAt(i)) >= 0) {
+                start = i + 1;
+                break;
+            }
+        }
+        return text.substring(start, Math.min(index, text.length()));
+    }
+
+    /**
+     * 命中点是否处在否定语境里。命中点之前同一从句里出现真否定词 → 判为否定。
+     * 判定前先把假否定词挖掉（替换成等长占位字符，不影响后续位置）。
+     */
+    static boolean inNegatedClause(String text, int index) {
+        String clause = clauseBefore(text, index);
+        if (!FALSE_NEGATIVE.matcher(clause).find()) {
+            return REAL_NEGATIVE.matcher(clause).find();
+        }
+        StringBuilder sb = new StringBuilder(clause);
+        Matcher fm = FALSE_NEGATIVE.matcher(clause);
+        while (fm.find()) {
+            for (int i = fm.start(); i < fm.end(); i++) {
+                sb.setCharAt(i, '口');
+            }
+        }
+        return REAL_NEGATIVE.matcher(sb).find();
+    }
+
     /** 按句子合并用的中间对象。 */
     private static final class HitBuilder {
         private final int start;
@@ -197,6 +266,10 @@ public class ScanService {
             while (guard++ < MAX_MATCHES_PER_RULE && m.find()) {
                 if (m.end() <= m.start()) {
                     continue; // 空匹配直接跳过（JS 侧同样处理）
+                }
+                // 否定语境守护：描述「禁止行为」的规则，命中点处在否定从句里就不算命中
+                if (!isAbsenceRule(cr.rule()) && inNegatedClause(src, m.start())) {
+                    continue;
                 }
                 int[] span = sentenceSpan(src, m.start());
                 if (span[1] <= span[0]) {

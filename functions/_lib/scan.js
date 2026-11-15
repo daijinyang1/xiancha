@@ -87,6 +87,56 @@ export function sentenceSpan(text, index) {
   return [start, end]
 }
 
+/* ─────────────────────────── 否定语境守护 ───────────────────────────
+ * 为什么需要：合同里大量出现「我们不做坏事」的声明，例如
+ *   「公司不收取任何押金。」「不扣押员工身份证原件。」「入职无需缴纳押金。」
+ * 规则写的是「收取押金」「扣押…身份证」，遇到前面的「不」照样匹配，
+ * 用户一扫就看到一片红 —— 这是系统性的误报，不是某条规则写错。
+ *
+ * 三条约束（都是实测出来的，改之前先看 tools/rule-cases.mjs 与 docs 里的数字）：
+ *  1. 作用域按**从句**切（，、；也断），不能按句号。否则
+ *     「公司不收取押金，但要交 800 元服装费」里的 R01 会被连带压掉。
+ *  2. 必须排除**假否定词**：不过 / 不仅 / 不但 / 不管 / 不论 / 不得不 / 不外乎 / 差不多。
+ *     否则「我们不收押金，**不过**要扣押身份证原件」里的 R03 会被误杀。
+ *  3. 规则本身在描述「义务缺失」的不加守护（正则里出现 不/未/没/无 的 38 条，如
+ *     R13「试岗不发工资」、R25「实习期间不缴社保」）。不加这条，
+ *     「不签劳动合同」「公司不交社保」「干不满一年不发年终奖」会全部漏掉。
+ */
+const CLAUSE_BOUND = '。！？\n\r，,、；;'
+
+/** 假否定词：里面的「不」不表否定，判定前先挖掉 */
+const FALSE_NEGATIVE = /(?:不过|不仅|不但|不光|不管|不论|不得不|不外乎|差不多|了不起|时不时)/g
+
+/** 真否定词。长的在前无所谓 —— 只做 test，不取位置 */
+const REAL_NEGATIVE = /(?:无需|无须|不得|禁止|严禁|绝不|不会|不存在|不予|暂不|并未|决不|免于|免除|不|没|未|免|无)/
+
+/** 规则是否在描述「义务缺失」（正则里自带否定字）—— 这类规则不加守护 */
+function isAbsenceRule(rule) {
+  const src = rule && rule.regexSource
+  return typeof src === 'string' && /[不未没无]/.test(src)
+}
+
+/** 取 index 所在从句的 [start, index) 文本 */
+function clauseBefore(text, index) {
+  let start = 0
+  for (let i = index - 1; i >= 0; i--) {
+    if (CLAUSE_BOUND.includes(text[i])) {
+      start = i + 1
+      break
+    }
+  }
+  return text.slice(start, index)
+}
+
+/**
+ * 命中点是否处在否定语境里（即「这里说的是一件没有被做的事」）。
+ * 命中点之前同一从句里出现真否定词 → 判为否定。
+ */
+export function inNegatedClause(text, index) {
+  const clause = clauseBefore(text, index).replace(FALSE_NEGATIVE, (m) => '口'.repeat(m.length))
+  return REAL_NEGATIVE.test(clause)
+}
+
 /** Java flagsOf：i→CASE_INSENSITIVE|UNICODE_CASE，m→MULTILINE，s→DOTALL，u→UNICODE_CASE，其余忽略 */
 function jsFlagsOf(javaFlags) {
   let f = 'g' // 全局扫描用
@@ -157,6 +207,8 @@ export function scanText(input) {
         pattern.lastIndex = mEnd + 1
         continue
       }
+      // 否定语境守护：描述「禁止行为」的规则，命中点处在否定从句里就不算命中
+      if (!isAbsenceRule(rule) && inNegatedClause(src, mStart)) continue
       const [spanStart, spanEnd] = sentenceSpan(src, mStart)
       if (spanEnd <= spanStart) continue
       const key = spanStart + ':' + spanEnd
