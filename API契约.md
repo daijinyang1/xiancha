@@ -11,9 +11,16 @@
 | 状态 | Pinia | 4.1.0 |
 | 样式 | Tailwind CSS | 4.3.5（`@tailwindcss/vite` 插件，不用 postcss） |
 | 构建 | Vite（Nuxt 内置） | — |
-| 后端 | Spring Boot + Java | 3.x / JDK 21 |
-| 数据库 | PostgreSQL | 18.1（本机 127.0.0.1:5432 / xiancha） |
-| 迁移 | Flyway | — |
+| 后端（本机） | Spring Boot + Java | 3.3.13 / JDK 21 |
+| 后端（线上） | Cloudflare Pages Functions | `functions/`，同域 `/api/*`，运行时 workerd |
+| 数据库（本机） | PostgreSQL | 18.1（127.0.0.1:5432 / xiancha） |
+| 数据库（线上） | Cloudflare D1（SQLite） | 库 `xiancha-scan`，binding `DB` |
+| 迁移 | Flyway（本机）/ wrangler d1（线上） | `V1__schema.sql`、`V2__seed.sql` / `db/migrations/d1/V1__d1_scan_log.sql` |
+
+**两套后端必须行为一致**：`functions/_lib/scan.js` 是按 `server/.../ScanService.java` 逐行复刻的
+（分句符 `。！？\n\r`、同句多规则合成一个 hit、每句取最高等级权重 高3/中2/低1 ×10 累加封顶 100、
+`MAX_MATCHES_PER_RULE = 500`）。改任何一边都要同步另一边，否则线上与本机结果对不上。
+**level 口径全站唯一 = 40 / 15**；`/api/scan/history` 返回中文 `高|中|低`，`/api/scan` 返回 `high|mid|low`。
 
 ## 目录
 
