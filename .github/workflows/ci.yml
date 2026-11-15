@@ -1,0 +1,85 @@
+# 先查 · CI 回归门禁
+#
+# 目的：改一行 CSS / 一个页面模板就不再「靠人记得跑脚本」。
+# 只做构建与断言，**不部署** —— 线上由 Cloudflare Pages 自己的 Git 集成做，
+# 这里再部署一次两边会打架。全流程不需要任何 secret。
+#
+# 硬约束：
+#   1) CI 机器上没有 PostgreSQL，也不应该连。数据靠仓库里已提交的
+#      web/app/data/{rules,traps,certs}.json 快照（tools/db-export.mjs 的 CI 回落分支）。
+#      「快照三份必须存在且有数据」本身就是一条回归测试。
+#   2) runner 用 ubuntu-latest + Node 22，与 Cloudflare Pages 构建机保持一致，
+#      避免「本地能过、线上构建挂」。
+#   3) 断言逻辑全部在 tools/ci-check.mjs 里，本地跑的是同一套：
+#        node tools/build-site.mjs .out && node tools/ci-check.mjs --log <构建日志>
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-check:
+    name: 构建静态产物并回归断言
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      # Cloudflare Pages 构建机同样是 CI 环境；这里显式置位，让 db-export 走快照回落分支。
+      CI: "true"
+      # 境外 runner 直连官方源；国内镜像在 GitHub 上反而更慢。
+      NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: 安装依赖（web/）
+        working-directory: web
+        run: npm ci --no-audit --no-fund --registry=https://registry.npmjs.org
+
+      - name: 数据快照回落（CI 无 Postgres，必须从仓库快照构建）
+        # 这条不是走过场：没有 psql 时必须走 isCi 分支退出 0，
+        # 否则说明回落逻辑坏了 —— 那 Cloudflare Pages 上的构建也会跟着坏。
+        run: node tools/db-export.mjs
+
+      - name: 构建静态产物（nuxt generate → .out）
+        # 用 tee 留一份构建日志，ci-check 要从里面读 "Prerendered N routes"。
+        # 默认 shell 不带 pipefail，必须显式打开，否则构建失败会被 tee 的成功退出码盖掉。
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .ci
+          node tools/build-site.mjs .out 2>&1 | tee .ci/build.log
+
+      - name: 回归断言（tools/ci-check.mjs）
+        run: node tools/ci-check.mjs --out .out --log .ci/build.log
+
+      - name: 失败时上传构建日志与产物
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-${{ github.run_id }}
+          path: |
+            .ci/
+            .out/
+          retention-days: 7
+          if-no-files-found: ignore
