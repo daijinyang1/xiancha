@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { applyMode, originOf, switchThemeMode } from '~/composables/useTheme'
 
 // 深色模式开关（iOS 风格滑动开关）
 // SSR 安全：服务端一律渲染 light（on=false），不读 localStorage；
 // onMounted 后再对齐真实选择，避免水合不一致。
 const on = ref(false)
 const ready = ref(false)
+const root = ref<HTMLElement | null>(null)
+// 过渡进行中再次点击时，用这一代的序号丢弃过期回调，避免两次过渡互相覆盖。
+let pending = 0
 
 const STORAGE_KEY = 'xc.mode'
-
-function apply(dark: boolean) {
-  if (import.meta.client) {
-    document.documentElement.dataset.mode = dark ? 'dark' : 'light'
-  }
-}
 
 function persist(dark: boolean) {
   try {
@@ -23,8 +21,18 @@ function persist(dark: boolean) {
   }
 }
 
-function toggle() {
-  on.value = !on.value
+// 点击只决定「目标值」，真正落地（改 dataset / 存 localStorage）放进 commit，
+// 由 switchThemeMode 在 View Transition 的合适时机调用，保证快照与过渡类时机正确。
+async function toggle() {
+  const next = !on.value
+  const my = ++pending
+  const origin = originOf(root.value)
+  await switchThemeMode(next, origin, () => {
+    on.value = next
+    applyMode(next)
+    persist(next)
+  })
+  if (my !== pending) return
 }
 
 onMounted(() => {
@@ -38,18 +46,20 @@ onMounted(() => {
   // head 里的内联脚本也只看 localStorage，两边口径必须一致，否则刷新会闪。
   on.value = stored === 'dark'
   ready.value = true
-  apply(on.value)
+  applyMode(on.value)
 })
 
+// 外部（其它标签页 / storage 事件）改了这个 ref 时仍然对齐 DOM。
+// 这里排掉「本次点击已经提交过」的重复写入：ready 之前不动。
 watch(on, (v) => {
   if (!ready.value) return
-  apply(v)
-  persist(v)
+  applyMode(v)
 })
 </script>
 
 <template>
   <button
+    ref="root"
     type="button"
     role="switch"
     :aria-checked="on ? 'true' : 'false'"

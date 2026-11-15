@@ -26,7 +26,7 @@
 | `API契约.md` | 前后端**唯一契约**：10 个接口的路径、入参、返回结构。改接口先改这里 |
 | `db/README.md` | 数据真源说明。**数据本身在 PostgreSQL**，本目录不再放 JSON 副本 |
 | `server/` | Spring Boot 后端；`src/main/java/com/xiancha/{controller,service,entity,repository,dto}` |
-| `server/src/main/resources/db/migration/` | `V1__schema.sql` 建表、`V2__seed.sql` 灌数据 |
+| `server/src/main/resources/db/migration/` | `V1__schema.sql` 建表、`V2__seed.sql` 灌数据、`V3__rule_variants.sql` 规则正则变体（2026-11-15）。**Flyway 只扫这个目录**，`db/migrations/` 下的是 D1 的 SQL，别放混 |
 | `server/src/main/java/com/xiancha/service/ScanService.java` | 扫描引擎：切句 → 正则匹配 → 同句合并 → 打分排序 → 落扫描日志 |
 | `web/app/pages/` | 9 个页面：`/` `/scan` `/rules` `/rules/[id]` `/traps` `/certs` `/about` `/history` `/stats` |
 | `web/app/composables/useApi.ts` | 唯一后端访问层：9 个取数方法 + 2500ms 超时 + 降级兜底；`base` 浏览器里是 `/api`、预渲染期是 `''` |
@@ -65,7 +65,7 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 - maven：`D:\App\maven\bin\mvn.cmd`，本地仓库 `D:\App\maven-repo`；JDK 21 在 `D:\App\jdk21`。
 
 ## 5. 改东西的规矩
-1. **改数据只改数据库**：连 PostgreSQL 改 `rule`/`trap`/`cert` 表 → `node tools/db-export.mjs` 导快照 → `node tools/db-export.mjs --check` 验一致。要让改动可复现就新建 `V3__xxx.sql` 写增量（**不要改已跑过的 V1/V2**，Flyway 有校验和，改了启动必失败）。**没有 `db/*.json` 了，别再找。**
+1. **改数据只改数据库**：连 PostgreSQL 改 `rule`/`trap`/`cert` 表 → `node tools/db-export.mjs` 导快照 → `node tools/db-export.mjs --check` 验一致。要让改动可复现就新建 `V4__xxx.sql` 写增量（**不要改已跑过的 V1/V2/V3**，Flyway 有校验和，改了启动必失败）。改完规则还要 `node tools/gen-functions-rules.mjs` 重生成线上数据、`node tools/rule-cases.mjs --from-db` 跑 136 条回归。**没有 `db/*.json` 了，别再找。**
 2. **方案 docx 是生成物**：改 `tools/_cfg_all.json`（或 `_cfg1/2/3.json` 后按序拼回），再 `python tools/build_docx.py tools/_cfg_all.json`。禁止手工改 docx 正文。
    拼接关系：`_cfg_all.blocks = _cfg1.blocks(48) + _cfg2(59) + _cfg3(69) = 176`，`_cfg2/_cfg3` 是纯数组，无外壳。
 3. **页面只通过 `useApi.ts` 取数**，不许在页面里直接 import `app/data/*.json`（那是兜底专用的）。
@@ -78,10 +78,15 @@ python tools\verify_docx.py                       :: 核对 179 段/28 表/19968
 10. **level 口径全站唯一 = 40 / 15**：`POST /api/scan` 返 `high|mid|low`，`/api/scan/history` 返中文 `高|中|低`（前端只认中文）。不要出现 `medium`。
 11. **深色模式不写 `dark:` 前缀类**：只覆盖 `[data-mode="dark"]` 里的 `--color-*` 令牌，否则 10 个页面必漏。新增颜色请先加成令牌。
 12. **动效时长纪律**：交互类 ≤200ms（`--duration-quick` 120 / `--duration-base` 180），入场类 360/620ms。任何 >700ms 的动画算 bug（`ci-check.mjs` 第 10 项会拦）。
+13. **深色切换走 View Transitions**：`web/app/composables/useTheme.ts` 是唯一出口。有 `document.startViewTransition` 时**只走圆形揭示**（从开关中心 `getBoundingClientRect()` 算半径，320ms），**不再挂** `.theme-transitioning`（两层同时开会给全站 3500 个过渡，/rules 累计阻塞 435ms）。UA 默认交叉淡入必须用 `animation: none` 关掉，否则圆内还在淡入、等于两层叠加。
+14. **规则正则必须双端可编译**：同一份 `regex_source` 要同时被 Java `Pattern` 与 JS `RegExp` 编译（禁 `\p{..}`、`\Q..\E`、possessive `a++`、命名组），窗口 ≤`{0,30}`、单条 ≤300 字符。改完跑 `node tools/rule-cases.mjs --from-db`（136 条必须 136/0）。
 
 ## 6. 自检清单（交付前必过）
 - [ ] `node tools/ci-check.mjs` → 10 项全过（GitHub Actions 同款，本地先过再推）
 - [ ] `node tools/seo-check.mjs .out` → 8 组全过
+- [ ] `node tools/verify-stack.mjs` → 20 项全过（需 Postgres + jar，验的是「真连数据库」不是快照）
+- [ ] `node tools/rule-cases.mjs --from-db` → 136/0（改了任何 `regex_source` 才需要，但改了不跑等于没验）
+- [ ] 深色切换真看过一遍：圆形揭示从开关那里扩散，不是整页瞬间变色，也没有 250ms 的交叉淡入叠在上面
 - [ ] `grep -rl "后端未连接" .out --include=*.html` 与 `grep -rl "127.0.0.1:8080" .out --include=*.html` 都必须是 0
 - [ ] `node tools/smoke.mjs` → 44 项全过（需三端口齐）
 - [ ] 关掉后端刷新一次 → 只多一条「后端未连接」，不白屏、扫描仍出结果

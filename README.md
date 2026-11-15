@@ -31,7 +31,7 @@
   db/                           数据真源说明（数据本身在 PostgreSQL，这里只有 README）
   server/                       Spring Boot 后端
     src/main/java/com/xiancha/  controller / service / entity / repository / dto
-    src/main/resources/db/migration/   V1__schema.sql 建表、V2__seed.sql 灌数据
+    src/main/resources/db/migration/   V1__schema.sql 建表、V2__seed.sql 灌数据、V3__rule_variants.sql 规则正则变体
     target/xiancha-server-1.0.0.jar    打好包的可执行 jar
   web/                          Nuxt 前端
     app/pages/                  9 个页面：/ /scan /rules /rules/[id] /traps /certs /about /history /stats
@@ -65,6 +65,7 @@ node tools\smoke.mjs
 node tools\\ci-check.mjs            :: 10 项回归断言（GitHub Actions 跑的就是它）
 node tools\\seo-check.mjs .out      :: 8 组 SEO/分享断言
 node tools\\verify-stack.mjs        :: 20 项全栈联调（需 Postgres + jar）
+node tools\\rule-cases.mjs --from-db :: 规则回归语料（136 条，必须 136/0）
 
 :: 七个路由逐个截图（存 tools/_shots/）
 node tools\cdp_web.mjs
@@ -95,13 +96,25 @@ node tools\deploy.mjs              :: 手动直传（极少用，现在 push 即
 
 1. 连库改数据：`PGPASSWORD=xiancha2026 D:/App/PostgreSQL/bin/psql.exe -h 127.0.0.1 -U xiancha -d xiancha`
    改 `rule` / `trap` / `cert` 表。
-2. 如果要让改动**可复现**（换台机器也能建出同样的库），在 `server/src/main/resources/db/migration/` 下**新建** `V3__xxx.sql` 写增量（`UPDATE rule SET ... WHERE id = 'R01';`）。**不要改已经跑过的 V1/V2** —— Flyway 记了校验和，改了会启动失败。
+2. 如果要让改动**可复现**（换台机器也能建出同样的库），在 `server/src/main/resources/db/migration/` 下**新建** `V4__xxx.sql` 写增量（`UPDATE rule SET ... WHERE id = 'R01';`）。**不要改已经跑过的 V1/V2/V3** —— Flyway 记了校验和，改了会启动失败。
+   注意：`server/src/main/resources/db/migration/` 是 Flyway 真正扫描的目录（`application.yml` 的 `locations: classpath:db/migration`）；`db/migrations/` 只放 D1 的 SQL，两处别放混。
 3. `node tools/db-export.mjs` 把库导出成 `web/app/data/*.json`（构建期快照）。**不导就等于没改**，线上构建用的还是旧快照。
 4. `node tools/db-export.mjs --check` 确认快照与库一致（退出码 0）。
-5. `node tools/verify-stack.mjs` 全栈自检（数据库 → 后端接口 → 落库 → 前后端字段对齐）。
-6. 提交推送，Pages 自动重新构建。
+5. `node tools/gen-functions-rules.mjs` 重生成线上 Functions 用的 `functions/_lib/rules.generated.js`（**忘了这步线上规则还是旧的**）。
+6. `node tools/rule-cases.mjs --from-db` 跑规则回归语料（136 条，必须 136/0）。
+7. `node tools/verify-stack.mjs` 全栈自检（数据库 → 后端接口 → 落库 → 前后端字段对齐）。
+8. 提交推送，Pages 自动重新构建。
 
 > `web/app/data/*.json` 是**生成物**，手改会在下次 `db-export` 被覆盖。
+
+### 规则正则的变体怎么加
+
+`V3__rule_variants.sql`（2026-11-15）把 63 条 `regex_source` 全部重写了一遍，让「交 800 元服装押金」「试用期不签合同」这类口语说法也能命中（改前 9 条已知漏检句漏 8 条，改后 0 条漏检、12 条合规句仍零误伤）。
+
+改规则时守三条：
+- 正则必须**同时**能被 Java `Pattern` 与 JS `RegExp` 编译（禁 `\p{..}`、`\Q..\E`、possessive `a++`、命名组），因为本机 Java 与线上 workerd 各跑一份。
+- 距离窗口不超过 `{0,30}`，单条正则不超过 300 字符 —— 窗口太宽会把正常句子也吃掉。
+- 改完必须 `node tools/rule-cases.mjs --from-db`：`POSITIVE` 要全中，`NEGATIVE`（合规句）要全不中。语料在 `tools/rule-cases.mjs` 里，新增规则时同步加句子。
 
 ## 改了前端之后
 

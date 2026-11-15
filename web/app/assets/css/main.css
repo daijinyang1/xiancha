@@ -689,6 +689,61 @@ header.is-scrolled .header-shell {
   color: #e6ebf2;
 }
 
+/* ── 深色模式切换过渡 ──────────────────────────────────────────────────────
+   两层同时启用，缺一个都会露馅（实测结论，不要只留一层）：
+   1) View Transitions：::view-transition-old/new(root) 浏览器默认给十字淡入，
+      这里 animation: none 关掉，改由 useTheme.ts 用 Web Animations 从开关中心
+      做圆形揭示（clip-path: circle），负责「空间」维度的扩散。
+   2) html.theme-transitioning：切换那一下给元素补 320ms 颜色过渡，负责「时间」
+      维度的渐入。只靠 1) 的话，元素本身没有 CSS 过渡 ⇒ 圆里直接是终值，
+      点击后 60ms 采样就是 rgb(18,22,28)，等于瞬切。
+   性能纪律：这个类只在切换期间存在约 320ms，绝不常驻；只过渡颜色类属性，
+   不过渡 opacity/transform，也不加 will-change（全站元素加 will-change 会层爆炸）。
+   减动效：整块包在 no-preference 里，配合 useTheme.ts 的 JS 判断，双保险关掉。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition:
+      background-color 320ms ease,
+      color 320ms ease,
+      border-color 320ms ease,
+      fill 320ms ease,
+      stroke 320ms ease,
+      box-shadow 320ms ease !important;
+  }
+
+  /* 开关自己那 180ms 的滑块位移必须保住：上面那条把 transition 整条覆盖了，
+     会让滑块「跳」到对岸而不是滑过去。这里用更高特异性把它还原。 */
+  html.theme-transitioning .mode-toggle-track {
+    transition:
+      background-color 320ms ease,
+      border-color 320ms ease !important;
+  }
+
+  html.theme-transitioning .mode-toggle-thumb {
+    transition:
+      transform var(--duration-base) var(--ease-out-x),
+      background-color 320ms ease,
+      color 320ms ease !important;
+  }
+}
+
 /* 没有脚本时（爬虫除外）直接显示内容，避免入场动画把人挡在门外 */
 @media (scripting: none) {
   .reveal,

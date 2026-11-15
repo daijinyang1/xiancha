@@ -15,7 +15,7 @@
 | 后端（线上） | Cloudflare Pages Functions | `functions/`，同域 `/api/*`，运行时 workerd |
 | 数据库（本机） | PostgreSQL | 18.1（127.0.0.1:5432 / xiancha） |
 | 数据库（线上） | Cloudflare D1（SQLite） | 库 `xiancha-scan`，binding `DB` |
-| 迁移 | Flyway（本机）/ wrangler d1（线上） | `V1__schema.sql`、`V2__seed.sql` / `db/migrations/d1/V1__d1_scan_log.sql` |
+| 迁移 | Flyway（本机）/ wrangler d1（线上） | `V1__schema.sql`、`V2__seed.sql`、`V3__rule_variants.sql` / `db/migrations/d1/V1__d1_scan_log.sql` |
 
 **两套后端必须行为一致**：`functions/_lib/scan.js` 是按 `server/.../ScanService.java` 逐行复刻的
 （分句符 `。！？\n\r`、同句多规则合成一个 hit、每句取最高等级权重 高3/中2/低1 ×10 累加封顶 100、
