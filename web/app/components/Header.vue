@@ -140,6 +140,8 @@ watch(() => route.fullPath, () => scheduleMeasure())
             aria-hidden="true"
           />
         </nav>
+        <!-- 深色模式开关（桌面端） -->
+        <ModeToggle class="ml-1 hidden md:inline-flex" />
       </div>
     </div>
 
@@ -153,6 +155,11 @@ watch(() => route.fullPath, () => scheduleMeasure())
       >
         {{ item.label }}
       </NuxtLink>
+      <!-- 深色模式开关（移动端） -->
+      <div class="mt-1 flex items-center justify-between border-t border-line px-3 pt-2 pb-1">
+        <span class="text-sm text-ink-2">深色模式</span>
+        <ModeToggle />
+      </div>
     </nav>
   </header>
 </template>

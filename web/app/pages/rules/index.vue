@@ -7,17 +7,6 @@ const router = useRouter()
 const { fetchRules } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
-  title: '规则词条',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '把 63 条实习合同风险规则拆成可查的词条：每一条写清命中长什么样、为什么有风险、依据哪一条法律、该怎么改。支持关键词搜索与按坑型、等级筛选，每条都有固定地址。',
-    },
-  ],
-})
-
 const all = ref<Rule[]>([])
 const loading = ref(true)
 const q = ref(String(route.query.q || ''))
@@ -28,6 +17,27 @@ const level = ref(String(route.query.level || ''))
 const { data: rulesData } = await useAsyncData('xc-rules-all', () => fetchRules())
 all.value = rulesData.value || []
 loading.value = false
+
+// SEO 放在取数之后：ItemList 里要带真实条数与每条词条的固定地址
+useSeo({
+  title: '规则词条',
+  description:
+    '把 63 条实习合同风险规则拆成可查的词条：每一条写清命中长什么样、为什么有风险、依据哪一条法律、该怎么改。支持关键词搜索与按坑型、等级筛选，每条都有固定地址。',
+  jsonLd: computed(() => [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '规则词条', path: '/rules' },
+    ]),
+    itemListJsonLd(
+      all.value.map((r) => ({
+        name: r.ask,
+        description: clip(r.verdict, 80),
+        url: SITE_ORIGIN + '/rules/' + r.id,
+      })),
+      '先查 · 实习合同风险规则词条',
+    ),
+  ]),
+})
 
 watch(q, (v) => {
   router.replace({ query: { ...route.query, q: v || undefined } })
@@ -146,11 +156,12 @@ function resetAll() {
           >清除筛选</button>
         </div>
 
-        <div class="flex flex-wrap gap-2">
+        <TabsRail :dep="type">
           <button
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!type ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="!type"
             @click="type = ''"
           >全部坑型</button>
           <button
@@ -159,17 +170,19 @@ function resetAll() {
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="type === t ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="type === t"
             @click="type = type === t ? '' : t"
           >
             {{ t }}<span class="ml-1 text-[11px] opacity-60">{{ typeCounts[t] || 0 }}</span>
           </button>
-        </div>
+        </TabsRail>
 
-        <div class="mt-2 flex flex-wrap gap-2">
+        <TabsRail :dep="level" class="mt-2">
           <button
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!level ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="!level"
             @click="level = ''"
           >全部等级</button>
           <button
@@ -178,11 +191,12 @@ function resetAll() {
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="level === l ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="level === l"
             @click="level = level === l ? '' : l"
           >
             {{ l }}风险<span class="ml-1 text-[11px] opacity-60">{{ levelCounts[l] || 0 }}</span>
           </button>
-        </div>
+        </TabsRail>
 
         <p class="mb-0 mt-2.5 text-xs text-ink-3">数据来源：后端 /api/rules（未连通时用内置快照，与扫描引擎同一份规则，不是另抄一遍）。</p>
       </section>
@@ -208,7 +222,7 @@ function resetAll() {
         :delay="Math.min(40 + i * 30, 200)"
         class="min-w-0"
       >
-        <article class="h-full rounded-xl border border-line bg-white p-4 shadow-sm transition hover:border-[#CBD8E6] hover:shadow">
+        <article class="border-beam hover-lift h-full rounded-xl border border-line bg-white p-4 shadow-sm transition hover:border-[#CBD8E6] hover:shadow">
           <div class="mb-2 flex items-start justify-between gap-2.5">
             <h3 class="!mb-1.5 !text-[15.5px] !leading-normal">
               <NuxtLink :to="'/rules/' + r.id" class="text-ink hover:text-brand-2 hover:underline">

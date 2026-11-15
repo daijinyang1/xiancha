@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./motion.css";
 
 /* 先查 · 设计令牌（沿用旧站配色：深蓝 #1F4E79 + 红 #C0392B） */
 @theme {
@@ -497,6 +498,195 @@ header.is-scrolled .header-shell {
   background: linear-gradient(90deg, #EEF2F7 25%, #F7FAFD 37%, #EEF2F7 63%);
   background-size: 200% 100%;
   animation: xc-shimmer 1.6s linear infinite;
+}
+
+/* ===========================================================
+   深色模式（手动开关，不跟随系统）
+   ---------------------------------------------------------
+   做法：只覆盖 --color-* 令牌，不写 dark: 前缀类（10 个页面逐页改必漏）。
+   Tailwind 4 的 bg-brand / text-ink / border-line 在产物里全部编译成 var()，
+   运行时换值即全站翻转。这里是不进 @layer 的普通规则，
+   层级上高于 @layer utilities，所以也能压住 hover:bg-[#xxx] 这类深色下会刺眼的浅色。
+   对比度已用 WCAG 脚本核过：正文类 21 组全部 ≥4.5。
+   =========================================================== */
+[data-mode="dark"] {
+  color-scheme: dark;
+
+  /* 底色：不用纯黑，纯黑配白字刺眼且失去层次 */
+  --color-page: #12161c;
+  --color-white: #1a1f27; /* 同时驱动 bg-white（67 处浅底）与 text-white（17 处按钮白字） */
+  --color-ink: #e6ebf2;
+  --color-ink-2: #aab6c5;
+  --color-ink-3: #8592a1;
+  --color-line: #2a313b;
+
+  --color-brand: #6aa3d8;
+  --color-brand-2: #8ec1ee;
+  --color-brand-soft: #1b2836;
+  --color-danger: #ff9d90;
+  --color-danger-soft: #3a1f1c;
+  --color-amber: #e8bb6e;
+  --color-amber-soft: #3a2c15;
+  --color-ok: #74d3a0;
+  --color-ok-soft: #16301f;
+
+  /* 深色下光投影看不见，改用更实的黑 + 一点内高光 */
+  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 8px 20px -10px rgba(0, 0, 0, 0.75), 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-raised: 0 12px 32px -16px rgba(0, 0, 0, 0.85);
+}
+
+/* 卡片与容器：card-x 与 hero 都是写死 #fff 的，令牌管不到 */
+[data-mode="dark"] .card-x {
+  background: #1a1f27;
+  box-shadow: var(--shadow-rest);
+}
+[data-mode="dark"] .hero-surface {
+  background-color: #1a1f27;
+  background-image:
+    radial-gradient(760px 320px at 12% -8%, rgba(106, 163, 216, 0.16), transparent 62%),
+    radial-gradient(560px 260px at 92% 0%, rgba(106, 163, 216, 0.10), transparent 58%),
+    linear-gradient(to right, rgba(42, 49, 59, 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(42, 49, 59, 0.7) 1px, transparent 1px);
+  background-size: auto, auto, 32px 32px, 32px 32px;
+}
+[data-mode="dark"] header.is-scrolled .header-shell {
+  background-color: rgba(18, 22, 28, 0.97);
+  box-shadow: 0 1px 0 rgba(42, 49, 59, 1), 0 8px 20px -14px rgba(0, 0, 0, 0.8);
+}
+
+/* 代码块 / 选中 / 骨架 都是写死浅色的 */
+[data-mode="dark"] code {
+  background: #232b35;
+  color: var(--color-ink);
+}
+[data-mode="dark"] ::selection {
+  background: #2c4358;
+  color: var(--color-ink);
+}
+[data-mode="dark"] .skeleton-line {
+  background: linear-gradient(90deg, #1f2731 25%, #2a333f 37%, #1f2731 63%);
+  background-size: 200% 100%;
+}
+
+/* 命中句高亮：深色下三档底色彼此接近（对比度只有 1.18/1.36/1.21），
+   所以同时用 2px 下边框 + 明显不同的前景色把三档拉开。 */
+[data-mode="dark"] mark.hit {
+  background: #4a1f1c;
+  color: #ffc4bb;
+  border-bottom-color: #ff9d90;
+}
+[data-mode="dark"] mark.hit.lv-中 {
+  background: #43331a;
+  color: #f5d493;
+  border-bottom-color: #e8bb6e;
+}
+[data-mode="dark"] mark.hit.lv-低 {
+  background: #1c2f42;
+  color: #b6d6f2;
+  border-bottom-color: #8ec1ee;
+}
+
+/* 表格行 hover 与书板表格的墨线 */
+[data-mode="dark"] table.table-x tbody tr:hover {
+  background: #1c242e;
+}
+[data-mode="dark"] table.table-x thead th,
+[data-mode="dark"] table.table-x tbody tr:last-child td {
+  border-color: var(--color-ink-3);
+}
+
+/* 纹理：原本是深色墨点压在浅底上，深色下要反过来用浅点 */
+[data-mode="dark"] .tex-dot {
+  background-image: radial-gradient(circle, rgba(230, 235, 242, 0.13) 1px, transparent 1px);
+}
+[data-mode="dark"] .tex-grid {
+  background-image:
+    linear-gradient(rgba(230, 235, 242, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(230, 235, 242, 0.07) 1px, transparent 1px);
+}
+[data-mode="dark"] .tex-hatch {
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 9px, rgba(230, 235, 242, 0.06) 9px, rgba(230, 235, 242, 0.06) 10px),
+    repeating-linear-gradient(-45deg, transparent, transparent 9px, rgba(230, 235, 242, 0.06) 9px, rgba(230, 235, 242, 0.06) 10px);
+}
+[data-mode="dark"] .tex-circuit {
+  background-image:
+    linear-gradient(90deg, rgba(142, 193, 238, 0.10) 1px, transparent 1px),
+    linear-gradient(rgba(142, 193, 238, 0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 193, 238, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(142, 193, 238, 0.18) 1px, transparent 1px);
+}
+
+/* 跳转链接可见时要有深色底，否则白字落在浅页面上 */
+[data-mode="dark"] .skip-to-main {
+  background: var(--color-brand);
+  color: #12161c;
+}
+
+/* -----------------------------------------------------------
+   页面里那些写死的 arbitrary 色值（Tailwind 已编译成 .bg-\[\#xxx\]）
+   统一在深色下换掉。不改页面文件，避免 10 个页面逐页漏。
+   ----------------------------------------------------------- */
+/* 浅底 → 抬升面 */
+[data-mode="dark"] .bg-\[\#F7FAFD\],
+[data-mode="dark"] .hover\:bg-\[\#F7FAFD\]:hover,
+[data-mode="dark"] .bg-\[\#FBFCFE\],
+[data-mode="dark"] .bg-\[\#FCFDFE\],
+[data-mode="dark"] .bg-\[\#F7F9FC\] {
+  background-color: #1f2731;
+}
+[data-mode="dark"] .bg-\[\#EFF2F6\],
+[data-mode="dark"] .bg-\[\#EDF1F6\],
+[data-mode="dark"] .hover\:bg-\[\#EDF1F6\]:hover,
+[data-mode="dark"] .bg-\[\#E7ECF3\],
+[data-mode="dark"] .bg-\[\#F2F5F9\] {
+  background-color: #242c36;
+}
+/* 品牌按钮 hover 压深 */
+[data-mode="dark"] .hover\:bg-\[\#1A4368\]:hover {
+  background-color: #7fb4e2;
+}
+/* 浅灰描边 → 深灰描边 */
+[data-mode="dark"] .hover\:border-\[\#C8D4E2\]:hover,
+[data-mode="dark"] .hover\:border-\[\#CBD8E6\]:hover,
+[data-mode="dark"] .hover\:border-\[\#BFD2E5\]:hover,
+[data-mode="dark"] .border-\[\#DDE5EE\],
+[data-mode="dark"] .border-\[\#D9E2EC\],
+[data-mode="dark"] .border-\[\#D3E2F0\] {
+  border-color: #3a4756;
+}
+[data-mode="dark"] .border-\[\#F0DDBC\] {
+  border-color: #4a3a1e;
+}
+[data-mode="dark"] .border-\[\#EFCFC9\] {
+  border-color: #5a2f2a;
+}
+[data-mode="dark"] .border-\[\#CDE6D8\] {
+  border-color: #24513a;
+}
+/* 深色文字 → 深色下要提亮，否则在深底上读不出来 */
+[data-mode="dark"] .text-\[\#7A5214\] {
+  color: #e8bb6e;
+}
+[data-mode="dark"] .text-\[\#8A2C21\] {
+  color: #ff9d90;
+}
+[data-mode="dark"] .text-\[\#1B4266\] {
+  color: #8ec1ee;
+}
+[data-mode="dark"] .border-l-\[\#D08C21\] {
+  border-left-color: #e8bb6e;
+}
+/* 半透明白底（header 吸顶条） */
+[data-mode="dark"] .bg-white\/95 {
+  background-color: rgba(18, 22, 28, 0.95);
+}
+
+/* Toast：bg-ink 在深色下变成浅底，白字会看不见 —— 单独给它一个中灰底 */
+[data-mode="dark"] .toast-x {
+  background-color: #2b3542;
+  color: #e6ebf2;
 }
 
 /* 没有脚本时（爬虫除外）直接显示内容，避免入场动画把人挡在门外 */

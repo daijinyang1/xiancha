@@ -7,14 +7,15 @@ const router = useRouter()
 const { fetchTraps, fetchRules } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
+useSeo({
   title: '避坑案例库',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '12 个脱敏改写的大学生实习踩坑案例，按押金、培训贷、无薪试岗、违约金、社保、加班、合同文本、离职 8 类筛选，支持搜索。每案写清当时的信号、后来的结果与处理办法。',
-    },
+  description:
+    '12 个脱敏改写的大学生实习踩坑案例，按押金、培训贷、无薪试岗、违约金、社保、加班、合同文本、离职 8 类筛选，支持搜索。每案写清当时的信号、后来的结果与处理办法。',
+  jsonLd: [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '避坑案例库', path: '/traps' },
+    ]),
   ],
 })
 
@@ -145,11 +146,12 @@ function resetAll() {
           <span class="text-[13px] text-ink-3">{{ countText }}</span>
         </div>
 
-        <div class="flex flex-wrap gap-2">
+        <TabsRail :dep="type">
           <button
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="!type ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="!type"
             @click="type = ''"
           >全部</button>
           <button
@@ -158,11 +160,12 @@ function resetAll() {
             type="button"
             class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
             :class="type === t ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+            :aria-pressed="type === t"
             @click="type = type === t ? '' : t"
           >
             {{ t }}<span class="ml-1 text-[11px] opacity-60">{{ typeCounts[t] || 0 }}</span>
           </button>
-        </div>
+        </TabsRail>
         <p class="mb-0 mt-2.5 text-xs text-ink-3">数据来源：后端 /api/traps（未连通时用内置快照）。点卡片展开详情。</p>
       </section>
     </Reveal>
@@ -185,7 +188,7 @@ function resetAll() {
         :delay="Math.min(60 + i * 40, 240)"
         class="min-w-0"
       >
-        <article class="h-full rounded-xl border border-line bg-white p-4 shadow-sm transition hover:border-[#CBD8E6] hover:shadow">
+        <article class="border-beam hover-lift h-full rounded-xl border border-line bg-white p-4 shadow-sm transition hover:border-[#CBD8E6] hover:shadow">
           <div class="mb-1.5 flex items-start justify-between gap-2.5">
             <h3 class="!mb-0 !text-[15.5px] !leading-normal">{{ t.title }}</h3>
           </div>

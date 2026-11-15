@@ -4,17 +4,6 @@ import type { Cert } from '~/composables/useApi'
 const { fetchCerts } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
-  title: '考证日历',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '教师资格证、计算机二级、四六级、普通话、初级会计、驾照：报考门槛、报名与考试窗口、费用口径，以及离最近一次考试还有多久。日期一律以官网当期公告为准。',
-    },
-  ],
-})
-
 const all = ref<Cert[]>([])
 const loading = ref(true)
 const level = ref('')
@@ -23,6 +12,26 @@ const level = ref('')
 const { data: certsData } = await useAsyncData('xc-certs-page', () => fetchCerts())
 all.value = certsData.value || []
 loading.value = false
+
+// SEO 放在取数之后：ItemList 要带真实的证书条数与名称
+useSeo({
+  title: '考证日历',
+  description:
+    '教师资格证、计算机二级、四六级、普通话、初级会计、驾照：报考门槛、报名与考试窗口、费用口径，以及离最近一次考试还有多久。日期一律以官网当期公告为准。',
+  jsonLd: computed(() => [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '考证日历', path: '/certs' },
+    ]),
+    itemListJsonLd(
+      all.value.map((c) => ({
+        name: c.name,
+        description: clip([c.level, c.fit, c.fee].filter(Boolean).join(' · '), 80),
+      })),
+      '先查 · 大学生常考证书报考日历',
+    ),
+  ]),
+})
 
 const filtered = computed(() => all.value.filter((c) => !level.value || c.level === level.value))
 
@@ -141,11 +150,12 @@ function countdownText(c: Cert) {
     <Reveal :delay="120">
       <section class="rounded-xl border border-line bg-white p-5 shadow-sm">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex flex-wrap gap-2">
+          <TabsRail :dep="level">
             <button
               type="button"
               class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
               :class="!level ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+              :aria-pressed="!level"
               @click="level = ''"
             >全部</button>
             <button
@@ -154,9 +164,10 @@ function countdownText(c: Cert) {
               type="button"
               class="h-8 rounded-full border px-[13px] text-[13px] chip-x"
               :class="level === l ? 'border-brand bg-brand font-bold text-white' : 'border-line bg-white text-ink-2 hover:border-[#C8D4E2] hover:bg-[#F7FAFD]'"
+              :aria-pressed="level === l"
               @click="level = level === l ? '' : l"
             >{{ l }}</button>
-          </div>
+          </TabsRail>
           <span class="text-[13px] text-ink-3">{{ countText }}</span>
         </div>
 

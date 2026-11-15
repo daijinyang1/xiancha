@@ -46,14 +46,26 @@ if (loaded.value) {
 
 watch(id, load)
 
-useHead({
+useSeo({
   title: computed(() => (rule.value ? rule.value.ask : '规则词条')),
-  meta: [
-    {
-      name: 'description',
-      content: computed(() => (rule.value ? rule.value.verdict : '先查 · 规则词条')),
-    },
-  ],
+  description: computed(() => (rule.value ? rule.value.verdict : '先查 · 规则词条')),
+  // 一条规则天然是「问题 + 判定 + 法条 + 改法」，用 FAQPage 最贴；面包屑给搜索结果显示层级
+  jsonLd: computed(() => {
+    const r = rule.value
+    if (!r) return breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '规则词条', path: '/rules' },
+    ])
+    const url = SITE_ORIGIN + '/rules/' + r.id
+    return [
+      faqJsonLd(r, url),
+      breadcrumbJsonLd([
+        { name: '首页', path: '/' },
+        { name: '规则词条', path: '/rules' },
+        { name: r.ask, path: '/rules/' + r.id },
+      ]),
+    ]
+  }),
 })
 </script>
 
@@ -92,6 +104,8 @@ useHead({
       </div>
 
       <!-- 一屏之内：这条认什么、依据哪条法、怎么改 -->
+      <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-5">
+        <div class="min-w-0">
       <Reveal :delay="40">
         <Card title="这条规则认的是什么">
           <template #head>
@@ -203,6 +217,39 @@ useHead({
           </div>
         </nav>
       </Reveal>
+        </div>
+
+        <!-- 右栏：跟着滚动的速查卡（窄屏自动落到底部，不遮挡正文） -->
+        <aside class="sticky-scroll mt-4 lg:mt-0">
+          <div class="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <p class="mb-2 text-xs font-bold tracking-wide text-ink-3">这一条速查</p>
+            <dl class="m-0 text-[13px]">
+              <div class="flex items-start justify-between gap-2 border-b border-dashed border-line py-1.5">
+                <dt class="flex-none text-ink-3">编号</dt>
+                <dd class="m-0 text-right font-mono font-bold text-ink">{{ rule.id }}</dd>
+              </div>
+              <div class="flex items-start justify-between gap-2 border-b border-dashed border-line py-1.5">
+                <dt class="flex-none text-ink-3">风险等级</dt>
+                <dd class="m-0 text-right"><RuleBadge :level="rule.level" /></dd>
+              </div>
+              <div class="flex items-start justify-between gap-2 border-b border-dashed border-line py-1.5">
+                <dt class="flex-none text-ink-3">坑型</dt>
+                <dd class="m-0 text-right"><RuleBadge :type="rule.type" /></dd>
+              </div>
+              <div class="flex items-start justify-between gap-2 py-1.5">
+                <dt class="flex-none text-ink-3">同坑型规则</dt>
+                <dd class="m-0 text-right tabular-nums text-ink-2">{{ sameTypeRules.length }} 条</dd>
+              </div>
+            </dl>
+            <NuxtLink
+              to="/scan"
+              class="mt-3 inline-flex h-[34px] w-full items-center justify-center rounded-[9px] bg-brand px-3 text-[13px] font-bold text-white no-underline btn-x hover:bg-[#1A4368] hover:no-underline"
+            >
+              拿去扫一份合同
+            </NuxtLink>
+          </div>
+        </aside>
+      </div>
     </template>
   </div>
 </template>

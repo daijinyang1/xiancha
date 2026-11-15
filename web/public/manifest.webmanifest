@@ -1,0 +1,48 @@
+{
+  "name": "先查 · 大学生遇事先查一遍",
+  "short_name": "先查",
+  "description": "大学生的查询站：63 条合同避坑规则词条、12 个真实踩坑案例、6 张证书的报考日历。该知道的事，先查一遍。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F6F9",
+  "theme_color": "#1F4E79",
+  "categories": ["education", "productivity", "reference"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "合同风险扫描",
+      "short_name": "扫描",
+      "description": "粘贴实习协议或劳动合同，逐句标出风险点",
+      "url": "/scan"
+    },
+    {
+      "name": "规则词条",
+      "short_name": "词条",
+      "description": "63 条实习合同风险规则，可按坑型与等级筛选",
+      "url": "/rules"
+    }
+  ]
+}

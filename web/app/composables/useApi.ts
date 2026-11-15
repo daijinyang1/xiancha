@@ -223,7 +223,12 @@ export function useApi() {
   // setup 期就把 Nuxt 上下文拿到手：useAsyncData 的 handler 在 setup 返回之后才执行，
   // 那时再调 useRuntimeConfig() / useState() 会抛 NUXT_E1001，预渲染直接取不到数据。
   const config = useRuntimeConfig()
-  const base = String(config.public.apiBase || '').replace(/\/+$/, '')
+  // 两套口径，靠 window 是否定义区分：
+  //  · 预渲染期跑在 Node 里（window 为 undefined）→ base 取 ''，getJson 立即抛 OfflineError，
+  //    静默用随包快照，不发请求、不点「后端未连接」黄条、也不改变产物字节。
+  //  · 浏览器运行时 → base 取同源 '/api'，命中 Cloudflare Pages Functions，零 CORS。
+  const isBrowser = typeof window !== 'undefined'
+  const base = String(config.public.apiBase || (isBrowser ? '/api' : '')).replace(/\/+$/, '')
   const status = useApiStatus()
 
   function markDegraded(reason: unknown) {

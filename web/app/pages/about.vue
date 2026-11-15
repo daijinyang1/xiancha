@@ -1,12 +1,13 @@
 <script setup lang="ts">
-useHead({
+useSeo({
   title: '关于我们',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '「先查」是一个大学生查询站，先做就业避坑这一格：合同风险扫描、避坑案例库、考证日历、扫描历史与数据总览。两个人做，所有内容都可核、有出处。',
-    },
+  description:
+    '「先查」是一个大学生查询站，先做就业避坑这一格：合同风险扫描、避坑案例库、考证日历、扫描历史与数据总览。两个人做，所有内容都可核、有出处。',
+  jsonLd: [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '关于我们', path: '/about' },
+    ]),
   ],
 })
 

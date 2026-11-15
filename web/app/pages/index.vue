@@ -2,15 +2,13 @@
 const router = useRouter()
 const { fetchStats } = useApi()
 
-useHead({
-  title: '首页',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '毕业、找工作、签合同、考证、办手续，先来查一遍。现在主线是实习与劳动合同避坑：粘一份合同，扫出押金、培训贷、无薪试岗、加班无加班费这些坑。',
-    },
-  ],
+useSeo({
+  // 首页标题就是完整口号，titleTemplate 见「已含站名」会原样保留
+  title: '先查 · 大学生遇事先查一遍',
+  description:
+    '毕业、找工作、签合同、考证、办手续，先来查一遍。现在主线是实习与劳动合同避坑：粘一份合同，扫出押金、培训贷、无薪试岗、加班无加班费这些坑。',
+  // 站点级结构化数据：WebSite（带站内搜索 SearchAction）+ Organization
+  jsonLd: [websiteJsonLd(), organizationJsonLd()],
 })
 
 // 静态预渲染时直接写入 HTML 的兜底数字（与 db/*.json 一致）
@@ -31,6 +29,9 @@ if (statsData.value) {
 
 const keyword = ref('')
 const samples = ['押金', '违约金', '试用期', '社保', '加班费', '竞业']
+
+// 入口卡按鼠标进入方向位移（direction-aware-hover），见 composables/useDirHover.ts
+const { dirHoverEnter, dirHoverLeave } = useDirHover()
 
 function go(word?: string) {
   const w = String(word ?? keyword.value).trim()
@@ -200,22 +201,22 @@ const layer3 = [
         </Reveal>
       </div>
 
-      <!-- KPI 四格：数字滚动 -->
+      <!-- KPI 四格：数字滚动（里程表口径，每位各自滚一格） -->
       <div class="relative z-[1] grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x">
         <Reveal :delay="0" class="px-5 py-4 sm:px-6">
-          <b class="block text-[26px] leading-tight text-brand"><CountUp :to="stats.rules" /></b>
+          <b class="block text-[26px] leading-tight text-brand"><OdometerNumber :to="stats.rules" /></b>
           <span class="text-xs text-ink-3">条风险规则</span>
         </Reveal>
         <Reveal :delay="80" class="px-5 py-4 sm:px-6">
-          <b class="block text-[26px] leading-tight text-brand"><CountUp :to="stats.traps" /></b>
+          <b class="block text-[26px] leading-tight text-brand"><OdometerNumber :to="stats.traps" /></b>
           <span class="text-xs text-ink-3">个真实套路案例</span>
         </Reveal>
         <Reveal :delay="160" class="px-5 py-4 sm:px-6">
-          <b class="block text-[26px] leading-tight text-brand"><CountUp :to="stats.certs" /></b>
+          <b class="block text-[26px] leading-tight text-brand"><OdometerNumber :to="stats.certs" /></b>
           <span class="text-xs text-ink-3">张证书查询</span>
         </Reveal>
         <Reveal :delay="240" class="px-5 py-4 sm:px-6">
-          <b class="block text-[26px] leading-tight text-danger"><CountUp :to="stats.types" /></b>
+          <b class="block text-[26px] leading-tight text-danger"><OdometerNumber :to="stats.types" /></b>
           <span class="text-xs text-ink-3">类坑型分类</span>
         </Reveal>
       </div>
@@ -240,7 +241,9 @@ const layer3 = [
         >
           <NuxtLink
             :to="e.to"
-            class="entry-card group relative flex h-full flex-col rounded-xl border border-line bg-white p-5 no-underline shadow-sm hover:border-[#BFD2E5] hover:shadow-lg hover:no-underline"
+            class="entry-card dir-hover group relative flex h-full flex-col rounded-xl border border-line bg-white p-5 no-underline shadow-sm hover:border-[#BFD2E5] hover:shadow-lg hover:no-underline"
+            @mouseenter="dirHoverEnter"
+            @mouseleave="dirHoverLeave"
           >
             <!-- hover 才亮的 brand 渐变叠层：一层绝对定位 span，零图片，走 --duration-base -->
             <span
@@ -269,7 +272,7 @@ const layer3 = [
         <h2 class="!mb-4 text-[17px]">三步：粘进去、扫一遍、拿去谈</h2>
       </Reveal>
 
-      <div class="rounded-xl border border-line bg-white p-6 shadow-sm">
+      <BlurReveal class="rounded-xl border border-line bg-white p-6 shadow-sm">
         <ol class="relative m-0 list-none p-0">
           <span class="timeline-rail pointer-events-none absolute left-[19px] top-3 bottom-3 w-[2px] rounded-full sm:left-[23px]" aria-hidden="true" />
           <Reveal
@@ -291,11 +294,12 @@ const layer3 = [
             </div>
           </Reveal>
         </ol>
-      </div>
+      </BlurReveal>
     </section>
 
     <!-- ============ 三层结构 ============ -->
-    <Card title="三层：现在能查的、排队的、不做的" class="mt-6">
+    <BlurReveal>
+      <Card title="三层：现在能查的、排队的、不做的" class="mt-6">
       <template #head>
         <span class="rounded-full border border-line bg-[#EFF2F6] px-[7px] text-[11px] font-bold leading-[18px] text-ink-2">路线</span>
       </template>
@@ -365,7 +369,8 @@ const layer3 = [
       <p class="mb-0 mt-3 text-xs text-ink-3">
         判断标准很简单：一个主题只有同时满足「有明确的坑型清单」「能写成可查的条目」「有公开可核的出处」三条，才会从这一层挪到上面那一层。凑不齐就继续排队，不做成半懂不懂的页面。
       </p>
-    </Card>
+      </Card>
+    </BlurReveal>
 
     <Card title="第三层 · 明确不做" class="mt-4">
       <ul class="mb-0 list-none p-0">

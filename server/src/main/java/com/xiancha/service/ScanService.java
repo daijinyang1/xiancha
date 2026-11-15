@@ -124,13 +124,19 @@ public class ScanService {
         return 1;
     }
 
-    /** 分数 → 风险档位：>=70 high，>=40 medium，其余 low。 */
+    /**
+     * 分数 → 风险档位：>=40 high，>=15 mid，其余 low。
+     *
+     * 全站统一口径就是这三个值（40/15），与 ScanHistoryService.HIGH_SCORE/MID_SCORE、
+     * 前端 scoreToLevel() 完全一致。历史上前端 scanLevelLabel() 只认 high|mid|low，
+     * 所以这里绝不能返回 "medium" —— 否则 40–69 分会被前端显示成「低风险」。
+     */
     public static String levelOfScore(int score) {
-        if (score >= 70) {
+        if (score >= 40) {
             return "high";
         }
-        if (score >= 40) {
-            return "medium";
+        if (score >= 15) {
+            return "mid";
         }
         return "low";
     }

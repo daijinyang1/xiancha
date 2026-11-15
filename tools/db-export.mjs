@@ -48,10 +48,10 @@ const QUERIES = {
   ) c;`,
 }
 
-function psql(sql) {
+function psql(sql, bin) {
   const args = ['-h', DB.host, '-p', DB.port, '-U', DB.user, '-d', DB.name,
     '-t', '-A', '-v', 'ON_ERROR_STOP=1', '-c', sql]
-  const r = spawnSync(PSQL, args, {
+  const r = spawnSync(bin, args, {
     encoding: 'utf8',
     env: { ...process.env, PGPASSWORD: DB.password },
     maxBuffer: 32 * 1024 * 1024,
@@ -63,24 +63,70 @@ function psql(sql) {
   return out
 }
 
+/**
+ * psql 是否可用。
+ *
+ * 为什么不能只写 fs.existsSync(PSQL)：默认值 `D:/App/PostgreSQL/bin/psql.exe` 是本机便携装路径，
+ * 在 ubuntu runner 上必然不存在（走回落分支，符合预期）。但如果有人把 PSQL_BIN 设成裸命令名
+ * `psql`（PATH 里就有），existsSync('psql') 会相对 cwd 查找 -> false，于是误判「没有 psql」，
+ * 明明能连库却静默用旧快照。所以带路径分隔符才按文件判断，裸命令名按 PATH 查。
+ */
+function findPsql() {
+  if (/[\\/]/.test(PSQL)) return fs.existsSync(PSQL) ? PSQL : null
+  const exts = process.platform === 'win32' ? (process.env.PATHEXT || '.EXE').split(';') : ['']
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    if (!dir) continue
+    for (const ext of exts) {
+      const candidate = path.join(dir, PSQL + ext)
+      if (fs.existsSync(candidate)) return candidate
+    }
+  }
+  return null
+}
+
+/** 三份快照是否真的可用（存在 + 能解析 + 非空数组）。只 existsSync 会把空文件当成「有」。 */
+function snapshotState() {
+  const bad = []
+  for (const n of Object.keys(QUERIES)) {
+    const file = path.join(DATA, n + '.json')
+    if (!fs.existsSync(file)) {
+      bad.push(`${n}.json 不存在`)
+      continue
+    }
+    try {
+      const rows = JSON.parse(fs.readFileSync(file, 'utf8'))
+      if (!Array.isArray(rows) || rows.length === 0) bad.push(`${n}.json 为空`)
+    } catch {
+      bad.push(`${n}.json 不是合法 JSON`)
+    }
+  }
+  return bad
+}
+
 function main() {
   const checkOnly = process.argv.includes('--check')
   const isCi = Boolean(process.env.CI) || process.env.CF_PAGES === '1'
+  const psqlBin = findPsql()
 
-  if (!fs.existsSync(PSQL)) {
-    // CI（Cloudflare Pages）里没有 Postgres，也没有 psql：这时用仓库里已提交的快照构建。
-    // 本地开发/发布前由人跑一次 node tools/db-export.mjs，把库的最新内容提交上去，
-    // 所以 CI 用的快照永远是「上次从库里导出的那一版」，不是手改的。
-    const haveAll = Object.keys(QUERIES).every((n) =>
-      fs.existsSync(path.join(DATA, n + '.json')),
-    )
-    if (isCi || haveAll) {
+  if (!psqlBin) {
+    // CI（Cloudflare Pages / GitHub Actions）里没有 Postgres，也没有 psql：
+    // 这时用仓库里已提交的快照构建。本地开发/发布前由人跑一次 node tools/db-export.mjs，
+    // 把库的最新内容提交上去，所以 CI 用的快照永远是「上次从库里导出的那一版」，不是手改的。
+    const bad = snapshotState()
+    if (bad.length === 0) {
       console.log(`[db-export] 没有 psql（${PSQL}），使用仓库内已提交的库快照构建。`)
       console.log('[db-export] 本地改了数据请先跑 node tools/db-export.mjs 再提交。')
       process.exit(0)
     }
+    // 快照不齐时必须失败：CI 里尤其重要，否则会带着缺数据的快照继续构建，
+    // 等到 nuxt.config.ts 读 rules.json 时才炸，报错信息跟真正原因（快照没提交）完全对不上。
     console.error(`找不到 psql：${PSQL}`)
-    console.error('且 web/app/data/ 下没有完整快照 —— 没有数据就无法构建。')
+    console.error(`且 web/app/data/ 下的快照不完整 —— ${bad.join('；')}`)
+    console.error(
+      isCi
+        ? 'CI 环境只能在有完整快照时构建：请本地跑 node tools/db-export.mjs 后提交 web/app/data/*.json。'
+        : '没有数据就无法构建：先启动 PostgreSQL 再跑 node tools/db-export.mjs。',
+    )
     process.exit(2)
   }
 
@@ -90,7 +136,7 @@ function main() {
   let changed = 0
 
   for (const [name, sql] of Object.entries(QUERIES)) {
-    const raw = psql(sql)
+    const raw = psql(sql, psqlBin)
     let rows
     try {
       rows = JSON.parse(raw)

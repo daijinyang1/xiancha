@@ -3,9 +3,11 @@
 // 为什么不用 app/error.vue 就够了：Nuxt 静态产物里的 404.html 只是 SPA 入口壳（1072 字节、正文 0 字），
 // error.vue 的内容要等 JS 跑起来才渲染。搜索引擎与无 JS 环境看到的是白页。
 // 这里做成普通路由页并加进预渲染列表，产出带正文的静态 404.html。
-useHead({
+useSeo({
   title: '页面不存在',
-  meta: [{ name: 'robots', content: 'noindex' }],
+  description: '这个地址在「先查」没有内容。可以回到首页，或从下面六格里挑一个入口。',
+  // 404 不进索引，但链接照常跟（noindex, follow 由 useSeo 写）
+  noindex: true,
 })
 
 const entries = [

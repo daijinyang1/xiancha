@@ -1,0 +1,336 @@
+/* ==========================================================================
+   先查 · 动效层 motion.css
+   纪律（与 main.css 的令牌配套，新增动效一律遵守）：
+   1) 交互反馈 ≤ 200ms（--duration-quick 120ms / --duration-base 180ms）；
+      入场类可到 620ms（--duration-enter / --duration-soft）；
+      本文件里**没有任何超过 700ms 的 transition / animation**。
+   2) 首屏正文不依赖 JS：所有入场类的初始态都是 opacity 0.001 或完全可见，
+      JS 挂了也能读到内容；`@media (scripting: none)` 直接点亮。
+   3) 颜色只用令牌 var(--color-*) 或 currentColor，不写死浅色 hex（深色模式靠令牌翻转）。
+   4) 全部位于 `@media (prefers-reduced-motion: reduce)` 的关闭名单内。
+
+   本文件由 main.css 顶部的 `@import "./motion.css";` 引入，只加这一行。
+   九个动效：scroll-progress / line-reveal / rolling-number-odometer /
+   sliding-indicator-tabs / direction-aware-hover / border-beam /
+   sticky-scroll / blur-reveal / hover-lift
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. scroll-progress — 顶部 2px 阅读进度条
+   由 components/ScrollProgress.vue 挂到 app.vue，固定在最上层。
+   scaleX 走 transform（不触发布局），80ms 线性跟手。
+   -------------------------------------------------------------------------- */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 90;
+  height: 2px;
+  pointer-events: none;
+  background: transparent;
+}
+.scroll-progress__bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-2));
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+
+/* --------------------------------------------------------------------------
+   2. line-reveal — 逐行淡入（扫描命中句、结果列表）
+   用法：父容器内每行加 .line-reveal 与 :style="{'--line-i': i}"
+   delay = min(i, 10) * 40ms（上限 400ms），单行 200ms。
+   -------------------------------------------------------------------------- */
+.line-reveal {
+  opacity: 0.001;
+  transform: translateY(6px);
+  transition:
+    opacity var(--duration-base) var(--ease-out-x),
+    transform var(--duration-base) var(--ease-out-x);
+  transition-delay: calc(min(var(--line-i, 0), 10) * 40ms);
+}
+.line-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. rolling-number-odometer — 每位数字竖直滚动
+   由 components/OdometerNumber.vue 渲染：每列 = 一条 0-9 竖排带，
+   位移量 = -行高 × 数字本身，**SSR 期就是终值**，不需要 JS 才看得见数字。
+   -------------------------------------------------------------------------- */
+.odo {
+  display: inline-flex;
+  align-items: flex-start;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.odo__col {
+  display: block;
+  overflow: hidden;
+  height: 1.16em;
+}
+.odo__sep,
+.odo__suffix {
+  display: block;
+  height: 1.16em;
+  line-height: 1.16em;
+}
+.odo__strip {
+  display: block;
+  transform: translateY(calc(-1.16em * var(--odo-d, 0)));
+  transition: transform 560ms var(--ease-out-x);
+  transition-delay: calc(var(--odo-i, 0) * 30ms);
+  will-change: transform;
+}
+/* 挂载初期（.odo--go 之前）不做过渡：先把数字瞬移到 0，再从 0 滚上去 */
+.odo:not(.odo--go) .odo__strip {
+  transition: none;
+}
+.odo__digit {
+  display: block;
+  height: 1.16em;
+  line-height: 1.16em;
+  text-align: center;
+}
+/* 数字列宽锁死为 1ch，避免滚动过程中左右跳动 */
+.odo__col > .odo__strip > .odo__digit {
+  min-width: 1ch;
+}
+
+/* --------------------------------------------------------------------------
+   4. sliding-indicator-tabs — 滑动指示条（坑型 / 等级 / 门槛筛选）
+   由 components/TabsRail.vue 渲染并量测当前选中项（[aria-pressed="true"]）。
+   指示条 180ms 跟随，不写 JS 定时器。
+   -------------------------------------------------------------------------- */
+.tab-rail {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tab-rail__indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 32px;
+  width: 0;
+  border-radius: 999px;
+  background: var(--color-brand);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-base) var(--ease-out-x),
+    width var(--duration-base) var(--ease-out-x),
+    opacity var(--duration-quick) linear;
+  will-change: transform, width;
+}
+.tab-rail.is-ready .tab-rail__indicator {
+  opacity: 1;
+}
+/* 选中项的白字压在指示条上，未选中项的背景让位，指示条滑过时才看得见。
+   注意：只有在 .is-ready（JS 量测成功）之后才撤掉底色 ——
+   否则 JS 挂了会变成「有选中但看不出选中」的哑状态。 */
+.tab-rail.is-ready > a,
+.tab-rail.is-ready > button {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+.tab-rail.is-ready > a[aria-pressed="true"],
+.tab-rail.is-ready > button[aria-pressed="true"] {
+  color: #fff;
+  border-color: var(--color-brand);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   5. direction-aware-hover — 按进入方向位移
+   页面在 mouseenter 时写入 --dir-x / --dir-y（-1..1 的归一化偏移），
+   这里只负责把它换算成 3px 级别的位移。默认回落为轻微上浮。
+   -------------------------------------------------------------------------- */
+.dir-hover {
+  transition:
+    transform var(--duration-base) var(--ease-out-x),
+    box-shadow var(--duration-base) var(--ease-out-x),
+    border-color var(--duration-base) var(--ease-out-x);
+}
+.dir-hover:hover,
+.dir-hover:focus-visible {
+  transform: translate3d(
+    calc(var(--dir-x, 0) * 3px),
+    calc(var(--dir-y, 0) * 3px - 1px),
+    0
+  );
+}
+/* entry-card 原本是固定 -4px 上浮，方向感知接管后统一走上面这条 */
+.entry-card.dir-hover:hover,
+.entry-card.dir-hover:focus-visible {
+  transform: translate3d(
+    calc(var(--dir-x, 0) * 3px),
+    calc(var(--dir-y, 0) * 3px - 3px),
+    0
+  );
+}
+
+/* --------------------------------------------------------------------------
+   6. border-beam — hover 时一圈光带绕行
+   用 @property 注册角度让 conic-gradient 可插值；一圈 640ms（<700ms），
+   只绕一圈不无限转，避免工具型站点出现「一直转」的噪音。
+   -------------------------------------------------------------------------- */
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.border-beam {
+  position: relative;
+  isolation: isolate;
+}
+.border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 268deg,
+    var(--color-brand-2) 322deg,
+    var(--color-brand) 340deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-quick) linear;
+}
+.border-beam:hover::before,
+.border-beam:focus-within::before {
+  opacity: 1;
+  animation: xc-beam-sweep 640ms var(--ease-out-x) 1;
+}
+@keyframes xc-beam-sweep {
+  from {
+    --beam-angle: 0deg;
+  }
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. sticky-scroll — 侧栏跟随（/rules/[id] 的速览栏）
+   top 让开粘性 header（72px）+ 16px 呼吸。
+   -------------------------------------------------------------------------- */
+.sticky-scroll {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+}
+@media (max-height: 620px) {
+  .sticky-scroll {
+    position: static;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. blur-reveal — 6px 模糊散焦入场（首屏次级区块）
+   起点 opacity 0.001 而不是 0：即使 JS 完全不跑，内容也参与布局与可访问性。
+   -------------------------------------------------------------------------- */
+.blur-reveal {
+  opacity: 0.001;
+  filter: blur(6px);
+  transform: translateY(4px);
+  transition:
+    opacity 460ms var(--ease-out-x),
+    filter 460ms var(--ease-out-x),
+    transform 460ms var(--ease-out-x);
+  transition-delay: calc(var(--reveal-delay, 0ms));
+}
+.blur-reveal.is-in {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   9. hover-lift — 极轻 2px 抬升 + 阴影换档（表格行 / 证书卡 / 规则卡复用）
+   -------------------------------------------------------------------------- */
+.hover-lift {
+  transition:
+    transform var(--duration-base) var(--ease-out-x),
+    box-shadow var(--duration-base) var(--ease-out-x),
+    border-color var(--duration-base) var(--ease-out-x);
+}
+.hover-lift:hover,
+.hover-lift:focus-within {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+table.table-x tbody tr.hover-lift:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--color-brand-soft);
+}
+
+/* --------------------------------------------------------------------------
+   无脚本 / 减少动态：两种降级都必须让内容「立刻、完整、静止」可见
+   -------------------------------------------------------------------------- */
+@media (scripting: none) {
+  .line-reveal,
+  .blur-reveal {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .tab-rail__indicator {
+    opacity: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-reveal,
+  .blur-reveal {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .scroll-progress__bar {
+    transition: none !important;
+  }
+  /* 注意：.odo__strip 的 transform 是「选数字」，不能置空，只关掉过渡 */
+  .odo__strip {
+    transition: none !important;
+  }
+  .tab-rail__indicator {
+    transition: none !important;
+  }
+  .dir-hover,
+  .hover-lift {
+    transition: none !important;
+  }
+  .dir-hover:hover,
+  .dir-hover:focus-visible,
+  .hover-lift:hover,
+  .hover-lift:focus-within {
+    transform: none !important;
+  }
+  .border-beam::before {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}

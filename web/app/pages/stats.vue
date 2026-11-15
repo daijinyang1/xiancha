@@ -5,14 +5,15 @@ import type { Health, ScanDayPoint, ScanStats, Stats } from '~/composables/useAp
 const { fetchStats, fetchScanStats, fetchHealth } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
+useSeo({
   title: '数据总览',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '「先查」的数据总览：规则与案例的规模、8 类坑型分布、风险等级分布，以及扫描量与平均分的近 7 天趋势。所有数字都来自同一份规则库。',
-    },
+  description:
+    '「先查」的数据总览：规则与案例的规模、8 类坑型分布、风险等级分布，以及扫描量与平均分的近 7 天趋势。所有数字都来自同一份规则库。',
+  jsonLd: [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '数据总览', path: '/stats' },
+    ]),
   ],
 })
 

@@ -4,5 +4,7 @@ User-agent: *
 Allow: /
 Disallow: /_nuxt/
 Disallow: /_payload.json
+# 新后端即将上线，接口不参与索引
+Disallow: /api/
 
 Sitemap: https://xiancha.pages.dev/sitemap.xml

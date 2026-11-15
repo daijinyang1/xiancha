@@ -5,14 +5,15 @@ import type { ScanDayPoint, ScanRecord, ScanStats } from '~/composables/useApi'
 const { fetchScanHistory, fetchScanStats } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
+useSeo({
   title: '扫描历史',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '回看你在「先查」做过的合同扫描：每次的时间、命中句数、命中规则数、风险分与风险档位，以及近 7 天的扫描量与平均分趋势。',
-    },
+  description:
+    '回看你在「先查」做过的合同扫描：每次的时间、命中句数、命中规则数、风险分与风险档位，以及近 7 天的扫描量与平均分趋势。',
+  jsonLd: [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '扫描历史', path: '/history' },
+    ]),
   ],
 })
 

@@ -1,0 +1,19 @@
+# Cloudflare Pages 配置 —— 让 xiancha.pages.dev 同时跑 Functions + D1。
+#
+# 只放「必须随仓库走」的东西：一个 D1 binding。
+# 不含 account_id（wrangler 已登录，账号由 OAuth 决定，写死反而换机器就崩）。
+# 不含任何密钥：本项目没有需要密钥的接口。
+#
+# 生效条件：Pages 项目 xiancha 的构建输出目录必须是 .out（与 pages_build_output_dir 一致）。
+# functions/ 目录在仓库根，Pages 会自动识别，不需要额外配置。
+
+name = "xiancha"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = ".out"
+
+# 扫描记录表：只存 text_hash + 计数 + 分数，绝不存合同原文。
+# 免费额度：5GB 存储 / 500 万读 / 10 万写每天。
+[[d1_databases]]
+binding = "DB"
+database_name = "xiancha-scan"
+database_id = "060db997-6713-4dd2-be8e-e2479b1ad5e7"

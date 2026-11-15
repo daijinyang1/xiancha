@@ -49,6 +49,13 @@ http
       else if (fs.existsSync(file + '.html')) file = file + '.html';
     }
     if (!fs.existsSync(file) && fs.existsSync(file + '.html')) file = file + '.html';
+    // 目录（如 /rules/）没有 index.html 时不能拿目录去 createReadStream，否则 EISDIR 会把进程打死
+    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
+      const notFoundDir = path.join(DIR, '404.html');
+      if (fs.existsSync(notFoundDir)) return send(res, 404, notFoundDir);
+      res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+      return res.end('404');
+    }
     if (fs.existsSync(file)) return send(res, 200, file);
     const notFound = path.join(DIR, '404.html');
     if (fs.existsSync(notFound)) return send(res, 404, notFound);

@@ -5,14 +5,15 @@ import type { ScanResult } from '~/composables/useApi'
 const { scan, fetchRules } = useApi()
 const apiStatus = useApiStatus()
 
-useHead({
+useSeo({
   title: '合同风险扫描',
-  meta: [
-    {
-      name: 'description',
-      content:
-        '粘贴实习合同、三方协议原文，规则引擎逐条标出押金、培训贷、无薪试岗、加班、违约金等风险点，并给出法律依据与修改建议。',
-    },
+  description:
+    '粘贴实习合同、三方协议原文，规则引擎逐条标出押金、培训贷、无薪试岗、加班、违约金等风险点，并给出法律依据与修改建议。',
+  jsonLd: [
+    breadcrumbJsonLd([
+      { name: '首页', path: '/' },
+      { name: '合同风险扫描', path: '/scan' },
+    ]),
   ],
 })
 
@@ -269,12 +270,15 @@ const { toast } = useToast()
               扫描结果会显示在这里。<br>粘贴合同文本后点「开始扫描」。
             </div>
 
-            <article
+            <LineReveal
               v-for="(hit, i) in result?.hits || []"
               :key="i"
-              class="rounded-[10px] border border-line bg-white px-3.5 py-3 transition hover:shadow-sm"
-              :class="hit.level === '高' ? 'border-l-4 border-l-danger' : hit.level === '中' ? 'border-l-4 border-l-[#D08C21]' : 'border-l-4 border-l-brand-2'"
+              :index="i"
             >
+              <article
+                class="rounded-[10px] border border-line bg-white px-3.5 py-3 transition hover:shadow-sm"
+                :class="hit.level === '高' ? 'border-l-4 border-l-danger' : hit.level === '中' ? 'border-l-4 border-l-[#D08C21]' : 'border-l-4 border-l-brand-2'"
+              >
               <div class="mb-1.5 flex flex-wrap items-center gap-2">
                 <RuleBadge :level="hit.level" />
                 <span class="text-xs text-ink-3">第 {{ i + 1 }} 句 · 命中 {{ hit.rules.length }} 条</span>
@@ -290,7 +294,8 @@ const { toast } = useToast()
                   <span class="ml-1.5 text-xs text-ink-3">{{ r.ask }}</span>
                 </li>
               </ul>
-            </article>
+              </article>
+            </LineReveal>
           </div>
 
           <div v-if="result && result.hits.length" class="mt-4 flex flex-wrap items-center gap-2.5 border-t border-line pt-3.5">

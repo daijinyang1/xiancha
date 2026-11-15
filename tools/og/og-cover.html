@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", -apple-system, sans-serif;
+    background: #F4F6F9;
+    position: relative;
+  }
+  /* 底色：米白 + 右上角品牌蓝的径向渐晕（增加层次，避免纯色块） */
+  .canvas {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(1200px 700px at 92% -10%, rgba(46,109,164,0.22) 0%, rgba(46,109,164,0.06) 42%, rgba(244,246,249,0) 68%),
+      radial-gradient(900px 600px at -8% 108%, rgba(31,78,121,0.14) 0%, rgba(244,246,249,0) 62%),
+      linear-gradient(155deg, #F7F9FB 0%, #F4F6F9 52%, #EDF1F6 100%);
+  }
+  /* 点阵纹理：极淡的 2px 点，制造纸张质感 */
+  .dots {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(28,37,48,0.10) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    opacity: 0.55;
+  }
+  /* 左侧品牌色竖条 */
+  .rail {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
+    background: linear-gradient(180deg, #1F4E79 0%, #2E6DA4 58%, #A9711B 100%);
+  }
+  .stage {
+    position: absolute; inset: 0;
+    padding: 62px 84px 56px 98px;
+    display: flex; flex-direction: column;
+  }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .mark {
+    width: 74px; height: 74px; border-radius: 19px;
+    background: linear-gradient(160deg, #2E6DA4 0%, #1F4E79 100%);
+    box-shadow: 0 10px 26px -12px rgba(31,78,121,0.62);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mark span {
+    color: #fff; font-size: 42px; font-weight: 700; line-height: 1;
+    transform: translateY(-2px);
+  }
+  .wordmark { display: flex; flex-direction: column; }
+  .wordmark b { font-size: 38px; color: #1C2530; letter-spacing: 2px; line-height: 1.1; }
+  .wordmark i {
+    font-style: normal; font-size: 15px; color: #788491;
+    letter-spacing: 3.4px; margin-top: 5px;
+  }
+  .headline {
+    margin-top: 52px;
+    font-size: 76px; font-weight: 700; line-height: 1.16;
+    color: #1C2530; letter-spacing: 1px;
+  }
+  .headline em { font-style: normal; color: #1F4E79; }
+  .rule {
+    margin-top: 30px; width: 132px; height: 5px; border-radius: 3px;
+    background: linear-gradient(90deg, #1F4E79 0%, #2E6DA4 62%, rgba(46,109,164,0) 100%);
+  }
+  .sub {
+    margin-top: 26px;
+    font-size: 27px; color: #45525F; letter-spacing: 0.6px; line-height: 1.55;
+  }
+  .sub b { color: #1F4E79; font-weight: 700; }
+  .foot {
+    margin-top: auto;
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .chips { display: flex; gap: 12px; }
+  .chip {
+    font-size: 19px; color: #1F4E79;
+    background: #EAF1F8; border: 1px solid #D3E2F0;
+    border-radius: 999px; padding: 8px 18px; letter-spacing: 0.4px;
+  }
+  .url { font-size: 22px; color: #788491; letter-spacing: 1.6px; }
+  .url b { color: #1F4E79; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="canvas"></div>
+  <div class="dots"></div>
+  <div class="rail"></div>
+  <div class="stage">
+    <div class="brand">
+      <div class="mark"><span>查</span></div>
+      <div class="wordmark">
+        <b>先查</b>
+        <i>XIANCHA</i>
+      </div>
+    </div>
+
+    <div class="headline">该知道的事，<em>先查一遍</em>。</div>
+    <div class="rule"></div>
+    <div class="sub">大学生的查询站 · 合同避坑 / 考证日历 / <b>63 条规则词条</b></div>
+
+    <div class="foot">
+      <div class="chips">
+        <span class="chip">合同风险扫描</span>
+        <span class="chip">避坑案例库</span>
+        <span class="chip">考证日历</span>
+      </div>
+      <div class="url"><b>xiancha</b>.pages.dev</div>
+    </div>
+  </div>
+</body>
+</html>
